@@ -1,0 +1,2903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090b0e">
+<meta name="referrer" content="no-referrer">
+<title>Sports Snap — Live Broadcast Hub</title>
+<meta name="description" content="Sports Snap — Sleek dark-mode live sports broadcast hub with an advanced HLS/DASH streaming player and full controls panel.">
+<meta property="og:image" content="https://i.ibb.co/BTM5dLF/sportssnap-logo.png">
+<link rel="icon" type="image/png" href="https://i.ibb.co/BTM5dLF/sportssnap-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dashjs@5.3.0/dist/modern/umd/dash.all.min.js"></script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #090b0e;
+  --surface-1: #10141b;
+  --surface-2: #161b24;
+  --surface-3: #1e2531;
+  --border: #222936;
+  --border-strong: #333e52;
+  --text: #f3f5f8;
+  --muted: #8e9aaf;
+  --dim: #64748b;
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --live: #ef4444;
+  --live-text: #f87171;
+  --font-display: "Barlow Condensed", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+img, video {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+@media print {
+  html, body { display: none !important; }
+}
+
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #283140; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a465b; }
+
+/* Top Bar Contract: Brand — Nav Links — Primary CTA */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(9, 11, 14, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e2430;
+}
+.topbar-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 2.5vw, 32px);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.brand-logo-img {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+}
+.brand-mark svg { width: 16px; height: 16px; fill: currentColor; }
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #fff;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.topnav-link {
+  position: relative;
+  padding: 20px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.topnav-link:hover { color: #e2e8f0; }
+.topnav-link.active { color: #fff; }
+.topnav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.primary-cta {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.primary-cta:hover { background: var(--accent-hover); }
+.primary-cta.secondary {
+  background: var(--surface-2);
+  color: #fff;
+  border: 1px solid #2a3342;
+}
+.primary-cta.secondary:hover { background: var(--surface-3); }
+
+/* Mobile Nav Strip */
+.mobile-nav {
+  display: none;
+  border-bottom: 1px solid #1e2430;
+  background: #0d1117;
+  padding: 8px 16px;
+  gap: 8px;
+  overflow-x: auto;
+}
+.mobile-nav-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mobile-nav-btn.active { background: var(--accent); color: var(--bg); }
+
+/* Studio Workspace */
+.workspace {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 2.5vw, 32px) 48px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Sidebar Rail */
+.rail { display: flex; flex-direction: column; gap: 22px; }
+.search-wrap { position: relative; }
+.search-wrap svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--dim);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 34px 0 38px;
+  border-radius: 8px;
+  background: #12161e;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  padding: 4px;
+  display: none;
+}
+.search-clear.show { display: block; }
+
+.rail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.cat-btn:hover { background: #131822; color: #fff; }
+.cat-btn.active {
+  background: #1a212d;
+  color: #fff;
+  border-color: #2e384b;
+}
+.cat-counts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.cat-live { color: var(--live-text); }
+.cat-total { color: var(--dim); }
+
+.rail-section {
+  padding-top: 16px;
+  border-top: 1px solid #1e2430;
+}
+.sort-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.view-toggle {
+  display: inline-flex;
+  background: #12161e;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+}
+.view-btn {
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--dim);
+  display: grid;
+  place-items: center;
+}
+.view-btn.active { background: #202735; color: #fff; }
+
+.select-box {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #12161e;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  color: #fff;
+  outline: none;
+  cursor: pointer;
+}
+.select-box:focus { border-color: var(--accent); }
+
+.summary-list { font-size: 12px; }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a202c;
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-row span { color: var(--muted); }
+.summary-row strong {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.summary-row strong.live-num { color: var(--live-text); }
+.summary-row strong.accent-num { color: var(--accent); }
+.updated-time { font-size: 11px; color: var(--dim); margin-top: 8px; }
+
+/* Main Viewport */
+.main-col { min-width: 0; display: flex; flex-direction: column; gap: 26px; }
+
+.live-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--live-text);
+  font-weight: 600;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--live);
+}
+
+/* Primary Sport Category Tabs: Cricket (1st), Football (2nd), Others (3rd) */
+.sport-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+}
+.sport-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a0b4;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.sport-tab:hover {
+  color: #fff;
+  background: #161c27;
+}
+.sport-tab.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.sport-tab-label {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.sport-tab-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+.sport-tab.active .sport-tab-meta {
+  color: rgba(9, 11, 14, 0.85);
+}
+.sport-tab-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--live-text);
+}
+.sport-tab.active .sport-tab-live {
+  color: var(--bg);
+}
+.sport-tab.active .live-dot {
+  background: var(--bg);
+}
+
+/* Section Header */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e2430;
+}
+.section-head h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+}
+.section-head p { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.section-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.link-accent {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--accent);
+}
+.link-accent:hover { text-decoration: underline; }
+
+/* Group Divider */
+.group-wrap { display: flex; flex-direction: column; gap: 16px; }
+.group-head { display: flex; align-items: center; gap: 12px; }
+.group-head h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+.group-head span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--dim);
+}
+.group-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #1e2430;
+}
+
+/* Match Cards Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+.card.playable { cursor: pointer; }
+.card.playable:hover {
+  transform: translateY(-2px);
+  border-color: #364257;
+  background: #151a24;
+}
+.card.muted-card { opacity: 0.78; }
+
+.card-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.card-kicker-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.card-kicker-cat {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+
+.matchup {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+.team-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.team-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vs-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dim);
+}
+
+.logo-img, .logo-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.logo-img.sm, .logo-fallback.sm { width: 32px; height: 32px; font-size: 11px; }
+.logo-img {
+  object-fit: contain;
+  background: #131820;
+  border: 1px solid #242b38;
+  padding: 4px;
+}
+.logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1b222e;
+  border: 1px solid #2c3648;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: #d4dde9;
+}
+
+.card-foot {
+  padding-top: 12px;
+  border-top: 1px solid #1b212c;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card-titles { min-width: 0; }
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-league {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.feed-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #171d28;
+  border: 1px solid #263042;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.share-btn:hover {
+  background: #202837;
+  border-color: #3a465b;
+  color: #fff;
+}
+.share-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+.feed-muted {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Compact List Mode */
+.list-wrap {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  overflow: hidden;
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #1c222d;
+  transition: background 0.15s;
+}
+.list-row:last-child { border-bottom: none; }
+.list-row.playable { cursor: pointer; }
+.list-row.playable:hover { background: #161c27; }
+.list-row.muted-card { opacity: 0.75; }
+.list-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.list-info { min-width: 0; }
+.list-title { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-sub { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.list-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.list-watch-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* State Panels */
+.state-box {
+  border: 1px dashed #273040;
+  border-radius: 12px;
+  background: #0e1218;
+  padding: 48px 24px;
+  text-align: center;
+}
+.state-box h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.state-box p { font-size: 14px; color: var(--muted); max-width: 440px; margin: 0 auto 16px; }
+
+/* Footer */
+.footer {
+  border-top: 1px solid #1c222d;
+  margin-top: auto;
+}
+.footer-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px clamp(16px, 2.5vw, 32px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--dim);
+}
+.footer-inner strong { color: var(--muted); }
+.footer-logo-img {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #181e28;
+  border: 1px solid #2d3646;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  display: none;
+}
+
+/* ===================== SPORTS SNAP ADVANCED PLAYER ===================== */
+.player-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.player-overlay.open { display: flex; }
+
+.player-shell {
+  width: 100%;
+  max-width: 1240px;
+  max-height: 94vh;
+  background: var(--surface-1);
+  border: 1px solid #242b38;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.75);
+}
+.player-shell.theater { max-width: 1440px; height: 94vh; }
+
+.player-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #141922;
+  border-bottom: 1px solid #232a36;
+}
+.player-top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.player-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.player-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.player-brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+}
+.player-brand-mark svg { width: 14px; height: 14px; fill: currentColor; }
+.player-brand-name {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.player-slash { color: #3a4558; }
+.player-meta { min-width: 0; }
+.player-match-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-subline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.player-top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.icon-btn {
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #252d3b;
+  background: #181e28;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.icon-btn:hover { color: #fff; border-color: #3a465b; }
+.icon-btn.active { border-color: var(--accent); color: #34d399; background: rgba(16, 185, 129, 0.14); }
+.icon-btn.close:hover { background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.5); }
+
+.player-main {
+  display: grid;
+  grid-template-columns: 1fr 330px;
+  min-height: 0;
+  flex: 1;
+}
+
+.video-stage {
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 440px;
+  overflow: hidden;
+  user-select: none;
+}
+.video-stage video { width: 100%; height: 100%; display: block; object-fit: contain; }
+.video-stage video.fit-cover { object-fit: cover; }
+.video-stage video.fit-16-9 { object-fit: fill; aspect-ratio: 16/9; }
+.video-stage video.fit-4-3 { object-fit: fill; aspect-ratio: 4/3; }
+
+.stage-watermark {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.72);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.watermark-logo-img {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.stage-watermark strong {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.stage-bottom-brand {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 78px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.58);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.92);
+}
+.video-stage:fullscreen .stage-bottom-brand { display: block; }
+.video-stage:fullscreen .transport-overlay.hidden ~ .stage-bottom-brand,
+.stage-bottom-brand.low { bottom: 14px; }
+.player-bottom-brand {
+  padding: 6px 16px;
+  background: #0b0e13;
+  border-top: 1px solid #1e2532;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.player-bottom-brand span {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.9);
+}
+.privacy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(9, 11, 14, 0.98);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+.privacy-overlay.show { display: flex; }
+.privacy-card {
+  max-width: 440px;
+  border: 1px solid #2a3342;
+  background: #10141b;
+  border-radius: 12px;
+  padding: 28px 24px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.75);
+}
+.privacy-card h2 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.privacy-card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.stage-watermark span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.stage-loader, .stage-error {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.stage-loader.show { display: flex; background: rgba(0,0,0,0.45); pointer-events: none; }
+.stage-error.show { display: flex; background: rgba(9, 11, 14, 0.92); }
+.spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.stage-loader p { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.9); font-weight: 500; }
+.stage-loader-hint { margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.68); max-width: 320px; }
+.server-hint {
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.08);
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(254, 243, 199, 0.9);
+}
+.stage-error h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.stage-error p { font-size: 13px; color: var(--muted); max-width: 380px; margin-bottom: 16px; }
+.error-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* Custom Transport Overlay */
+.transport-overlay {
+  position: absolute;
+  inset-x: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40px 16px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.72) 55%, transparent);
+  transition: opacity 0.2s;
+}
+.transport-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.seek-wrap {
+  position: relative;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.seek-track {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.22);
+  overflow: hidden;
+}
+.seek-buffered {
+  position: absolute;
+  inset-y: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(255,255,255,0.34);
+}
+.seek-played {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+}
+.seek-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.controls-group { display: flex; align-items: center; gap: 6px; }
+.ctrl-btn {
+  height: 34px;
+  min-width: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background 0.15s;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+.ctrl-select {
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+.ctrl-select option { background: #10141b; color: #fff; }
+.vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 72px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.24);
+  cursor: pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.live-jump-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+.live-jump-btn.behind {
+  background: rgba(255,255,255,0.15);
+  border-color: transparent;
+  color: #fff;
+}
+.live-jump-btn.behind:hover { background: var(--live); }
+.timecode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Side Controls Panel */
+.side-panel {
+  background: #121720;
+  border-left: 1px solid #232a36;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.panel-tabs {
+  padding: 10px;
+  border-bottom: 1px solid #232a36;
+  background: #141922;
+}
+.panel-tabs-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #0b0e13;
+  border: 1px solid #1f2633;
+}
+.panel-tab {
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+.panel-tab.active { background: #1f2633; color: #fff; }
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel-pane { display: none; flex-direction: column; gap: 14px; }
+.panel-pane.active { display: flex; }
+
+.source-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #171d28;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.source-item:hover { border-color: #364154; }
+.source-item.active {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.6);
+}
+.source-name { font-size: 13px; font-weight: 600; color: #fff; }
+.source-proto { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+.source-active-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: #34d399; }
+
+.ctrl-section { padding-top: 12px; border-top: 1px solid #202733; display: flex; flex-direction: column; gap: 10px; }
+.ctrl-section:first-child { padding-top: 0; border-top: none; }
+.ctrl-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+.fit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.fit-btn {
+  padding: 6px 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #171d28;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.fit-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: #34d399;
+}
+
+.slider-label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); }
+.slider-head { display: flex; justify-content: space-between; }
+.slider-head span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.panel-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  cursor: pointer;
+}
+.panel-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.toggle-row input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  font-size: 12px;
+}
+.telemetry-grid span:nth-child(odd) { color: var(--muted); }
+.telemetry-grid span:nth-child(even) {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-align: right;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.shortcuts-grid kbd { font-family: var(--font-mono); color: #fff; }
+
+/* Responsive Breakpoints */
+@media (max-width: 1120px) {
+  .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 960px) {
+  .workspace { grid-template-columns: 1fr; gap: 20px; }
+  .cat-list { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+  .player-main { grid-template-columns: 1fr; }
+  .side-panel { border-left: none; border-top: 1px solid #232a36; max-height: 290px; }
+  .video-stage { min-height: 240px; aspect-ratio: 16/9; }
+}
+@media (max-width: 760px) {
+  .topnav { display: none; }
+  .mobile-nav { display: flex; }
+  .sport-tab { padding: 10px 12px; }
+  .sport-tab-label { font-size: 16px; }
+  .cards-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#top" class="brand" id="brandReset" aria-label="Sports Snap Home">
+      <img src="https://i.ibb.co/BTM5dLF/sportssnap-logo.png" alt="Sports Snap" referrerpolicy="no-referrer" class="brand-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';">
+      <span style="display:none;align-items:center;gap:10px">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+        </span>
+        <span class="brand-name">Sports Snap</span>
+      </span>
+    </a>
+
+    <nav class="topnav" aria-label="Primary status navigation">
+      <button type="button" class="topnav-link active" data-status="ALL">All Matches</button>
+      <button type="button" class="topnav-link" data-status="LIVE">Live Now</button>
+      <button type="button" class="topnav-link" data-status="UPCOMING">Upcoming</button>
+      <button type="button" class="topnav-link" data-status="ENDED">Finished</button>
+    </nav>
+
+    <button type="button" class="primary-cta" id="headerActionBtn">Refresh Feeds</button>
+  </div>
+</header>
+
+<div class="mobile-nav" aria-label="Mobile status navigation">
+  <button type="button" class="mobile-nav-btn active" data-status="ALL">All Matches</button>
+  <button type="button" class="mobile-nav-btn" data-status="LIVE">Live Now</button>
+  <button type="button" class="mobile-nav-btn" data-status="UPCOMING">Upcoming</button>
+  <button type="button" class="mobile-nav-btn" data-status="ENDED">Finished</button>
+</div>
+
+<div class="workspace">
+  <aside class="rail">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input id="searchInput" class="search-input" type="search" placeholder="Search teams, leagues… ( / )" autocomplete="off" aria-label="Search fixtures">
+      <button type="button" id="searchClear" class="search-clear" aria-label="Clear search">✕</button>
+    </div>
+
+    <div>
+      <div class="rail-label">Sports Directory</div>
+      <div class="cat-list" id="categoryList">
+        <button type="button" class="cat-btn active" data-category="ALL"><span>All Sports</span></button>
+      </div>
+    </div>
+
+    <div class="rail-section">
+      <div class="sort-head">
+        <label for="sortSelect" class="rail-label" style="margin:0;padding:0">Sort Order</label>
+        <div class="view-toggle">
+          <button type="button" class="view-btn active" id="gridViewBtn" title="Grid View" aria-label="Grid View">▦</button>
+          <button type="button" class="view-btn" id="listViewBtn" title="List View" aria-label="Compact List View">☰</button>
+        </div>
+      </div>
+      <select id="sortSelect" class="select-box" aria-label="Sort matches">
+        <option value="default">Recommended order</option>
+        <option value="live">Live matches first</option>
+        <option value="name">Alphabetical (A–Z)</option>
+      </select>
+    </div>
+
+    <div class="rail-section">
+      <div class="sort-head">
+        <span class="rail-label" style="margin:0;padding:0">Feed Summary</span>
+        <button type="button" class="link-accent" id="syncBtn" style="font-size:12px">Sync</button>
+      </div>
+      <div class="summary-list">
+        <div class="summary-row"><span>Total Fixtures</span><strong id="sumTotal">—</strong></div>
+        <div class="summary-row"><span>Live Broadcasts</span><strong class="live-num" id="sumLive">—</strong></div>
+        <div class="summary-row"><span>Upcoming</span><strong id="sumUpcoming">—</strong></div>
+        <div class="summary-row"><span>Playable Channels</span><strong class="accent-num" id="sumChannels">—</strong></div>
+      </div>
+      <div class="updated-time" id="updatedLabel">Connecting to feed…</div>
+    </div>
+  </aside>
+
+  <main class="main-col">
+    <div class="sport-tabs" id="sportTabs" role="tablist" aria-label="Sport category tabs"></div>
+
+    <div class="section-head">
+      <div>
+        <h2 id="sectionHeading">All Fixtures</h2>
+        <p>Select any live fixture to open the Sports Snap player and controls panel.</p>
+      </div>
+      <div class="section-right">
+        <span id="fixtureCount">Loading…</span>
+        <button type="button" id="resetFiltersBtn" class="link-accent" style="display:none">Reset filters</button>
+      </div>
+    </div>
+
+    <div id="contentArea">
+      <div class="state-box">
+        <h3>Loading Sports Snap Hub</h3>
+        <p>Fetching live and upcoming broadcast schedules.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <img src="https://i.ibb.co/BTM5dLF/sportssnap-logo.png" alt="Sports Snap" referrerpolicy="no-referrer" class="footer-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
+      <strong style="display:none">Sports Snap</strong>
+    </div>
+    <span>Live &amp; Upcoming Global Sports Directory</span>
+  </div>
+</footer>
+
+<!-- Advanced Sports Snap Player Modal -->
+<div class="player-overlay" id="playerOverlay" role="dialog" aria-modal="true" aria-label="Sports Snap Player">
+  <div class="player-shell" id="playerShell">
+    <div class="player-top">
+      <div class="player-top-left">
+        <div class="player-brand">
+          <img src="https://i.ibb.co/BTM5dLF/sportssnap-logo.png" alt="Sports Snap" referrerpolicy="no-referrer" class="player-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';">
+          <span style="display:none;align-items:center;gap:8px">
+            <span class="player-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+            </span>
+            <span class="player-brand-name">Sports Snap</span>
+          </span>
+        </div>
+        <span class="player-slash">/</span>
+        <div class="player-meta">
+          <div class="player-match-title" id="playerMatchTitle">Loading…</div>
+          <div class="player-subline">
+            <span class="live-inline"><span class="live-dot"></span>LIVE</span>
+            <span>·</span>
+            <span id="playerChannelName">Channel</span>
+            <span>·</span>
+            <span id="playerProto" style="font-family:var(--font-mono)">HLS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-top-actions">
+        <button type="button" class="icon-btn" id="shareMatchBtn" title="Share Match">Share</button>
+        <button type="button" class="icon-btn" id="reloadStreamBtn" title="Reload Stream">↻ Reload</button>
+        <button type="button" class="icon-btn" id="pipBtn" title="Picture-in-Picture (P)">PiP</button>
+        <button type="button" class="icon-btn" id="theaterBtn" title="Theater Mode (T)">Theater</button>
+        <button type="button" class="icon-btn close" id="closePlayerBtn" title="Close (Esc)" aria-label="Close Player">✕</button>
+      </div>
+    </div>
+
+    <div class="player-main">
+      <div class="video-stage" id="videoStage">
+        <video id="videoEl" playsinline controlsList="nodownload noplaybackrate"></video>
+
+        <div class="stage-watermark">
+          <img src="https://i.ibb.co/BTM5dLF/sportssnap-logo.png" alt="Sports Snap" referrerpolicy="no-referrer" class="watermark-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
+          <strong style="display:none">Sports Snap</strong>
+          <span id="stageResBadge">HLS</span>
+        </div>
+
+        <div class="stage-loader" id="stageLoader">
+          <div class="spinner"></div>
+          <p>Connecting to Sports Snap server…</p>
+          <span class="stage-loader-hint">Wait a few seconds to load, or change server if it doesn't play.</span>
+        </div>
+
+        <div class="stage-error" id="stageError">
+          <h4>Stream Unavailable</h4>
+          <p id="stageErrorMsg">Unable to play this server in browser. Wait a moment or change server below.</p>
+          <div class="error-actions">
+            <button type="button" class="primary-cta" id="retryFeedBtn">Retry Server</button>
+            <button type="button" class="primary-cta secondary" id="nextSourceBtn">Try Next Server</button>
+          </div>
+        </div>
+
+        <div class="transport-overlay" id="transportOverlay">
+          <div class="seek-wrap">
+            <div class="seek-track">
+              <div class="seek-buffered" id="seekBuffered" style="width:0%"></div>
+              <div class="seek-played" id="seekPlayed" style="width:0%"></div>
+            </div>
+            <input type="range" id="seekInput" class="seek-input" min="0" max="100" step="0.5" value="0" aria-label="Seek timeline">
+          </div>
+
+          <div class="controls-bar">
+            <div class="controls-group">
+              <button type="button" class="ctrl-btn" id="playPauseBtn" aria-label="Play or Pause">▶</button>
+              <button type="button" class="ctrl-btn" id="rwBtn" title="Rewind 10s (J)">-10s</button>
+              <button type="button" class="ctrl-btn" id="fwBtn" title="Forward 10s (L)">+10s</button>
+              <button type="button" class="ctrl-btn" id="muteBtn" aria-label="Mute">🔊</button>
+              <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.02" value="0.85" aria-label="Volume">
+              <button type="button" class="live-jump-btn" id="liveJumpBtn">
+                <span class="live-dot"></span><span>LIVE</span>
+              </button>
+              <span class="timecode" id="timecodeEl" style="display:none">00:00 / 00:00</span>
+            </div>
+
+            <div class="controls-group">
+              <button type="button" class="ctrl-btn" id="snapBtn" title="Snap Frame (S)">📷 Snap</button>
+              <select id="speedSelect" class="ctrl-select" aria-label="Playback speed">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+              </select>
+              <select id="qualitySelect" class="ctrl-select" aria-label="Video quality">
+                <option value="-1">Auto</option>
+              </select>
+              <select id="audioSelect" class="ctrl-select" aria-label="Audio track" style="display:none"></select>
+              <button type="button" class="ctrl-btn" id="fsBtn" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-bottom-brand" id="stageBottomBrand">Sports Snap</div>
+      </div>
+
+      <!-- Advanced Controls & Channels Panel -->
+      <aside class="side-panel">
+        <div class="panel-tabs">
+          <div class="panel-tabs-inner">
+            <button type="button" class="panel-tab active" data-pane="sourcesPane" id="tabSources">Servers</button>
+            <button type="button" class="panel-tab" data-pane="controlsPane" id="tabControls">Controls Panel</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="panel-pane active" id="sourcesPane">
+            <div class="ctrl-title">
+              <span>Available Broadcast Servers</span>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--accent)">Protected</span>
+            </div>
+            <p class="server-hint" data-server-hint>Please wait a few seconds for the stream to load. Change server below if it does not play.</p>
+            <div id="sourcesList" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+
+          <div class="panel-pane" id="controlsPane">
+            <div class="ctrl-section">
+              <div class="ctrl-title"><span>Aspect Ratio &amp; Frame Fit</span></div>
+              <div class="fit-grid" id="fitButtons">
+                <button type="button" class="fit-btn active" data-fit="contain">Fit</button>
+                <button type="button" class="fit-btn" data-fit="cover">Fill</button>
+                <button type="button" class="fit-btn" data-fit="16:9">16:9</button>
+                <button type="button" class="fit-btn" data-fit="4:3">4:3</button>
+              </div>
+            </div>
+
+            <div class="ctrl-section">
+              <div class="ctrl-title">
+                <span>Picture Calibration</span>
+                <button type="button" class="link-accent" id="resetPictureBtn" style="font-size:11px">Reset</button>
+              </div>
+              <label class="slider-label">
+                <span class="slider-head"><span>Brightness</span><span id="valBright">100%</span></span>
+                <input type="range" class="panel-range" id="brightSlider" min="50" max="150" value="100">
+              </label>
+              <label class="slider-label">
+                <span class="slider-head"><span>Contrast</span><span id="valContrast">100%</span></span>
+                <input type="range" class="panel-range" id="contrastSlider" min="50" max="150" value="100">
+              </label>
+              <label class="slider-label">
+                <span class="slider-head"><span>Saturation</span><span id="valSat">100%</span></span>
+                <input type="range" class="panel-range" id="satSlider" min="0" max="200" value="100">
+              </label>
+            </div>
+
+            <div class="ctrl-section">
+              <div class="ctrl-title"><span>Stream Engine</span></div>
+              <label class="toggle-row">
+                <span>Low-Latency Buffering</span>
+                <input type="checkbox" id="lowLatencyChk" checked>
+              </label>
+              <label class="toggle-row">
+                <span>Auto-Recover Stream Stalls</span>
+                <input type="checkbox" id="autoRecoverChk" checked>
+              </label>
+            </div>
+
+            <div class="ctrl-section">
+              <div class="ctrl-title"><span>Stream Telemetry</span></div>
+              <div class="telemetry-grid">
+                <span>State</span><span id="telState">Connecting</span>
+                <span>Resolution</span><span id="telRes">—</span>
+                <span>Bitrate</span><span id="telBitrate">Auto</span>
+                <span>Buffer Ahead</span><span id="telBuf">0s</span>
+                <span>Dropped Frames</span><span id="telDrop">0</span>
+              </div>
+            </div>
+
+            <div class="ctrl-section">
+              <div class="ctrl-title"><span>Keyboard Shortcuts</span></div>
+              <div class="shortcuts-grid">
+                <div><kbd>Space</kbd> Play / Pause</div>
+                <div><kbd>M</kbd> Mute</div>
+                <div><kbd>F</kbd> Fullscreen</div>
+                <div><kbd>P</kbd> Picture-in-Pic</div>
+                <div><kbd>S</kbd> Snap Frame</div>
+                <div><kbd>← / →</kbd> Seek 10s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="player-bottom-brand">
+      <span data-player-bottom-brand>Sports Snap</span>
+    </div>
+  </div>
+</div>
+
+<div class="privacy-overlay" id="privacyOverlay" role="alertdialog" aria-modal="true">
+  <div class="privacy-card">
+    <h2>Protected Stream Notice</h2>
+    <p>Developer tools and source inspection are restricted on Sports Snap. Close developer tools to resume watching live fixtures.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+
+const _EP = [
+  "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NtLW1vbmly",
+  "dWxpc2xhbS9VcGNvbWluZy1hbmQtTGl2ZS1TcG9ydHMtRGF0YS9tYWlu",
+  "L1Nwb3J0c19kYXRhLmpzb24="
+];
+const PRIORITY_CATEGORY = "cricket";
+const SECOND_PRIORITY_CATEGORY = "football";
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+const streamVault = new Map();
+const failedTokens = new Set();
+const workingTokens = new Set();
+let tokenSeq = 0;
+
+let allMatches = [];
+let statusFilter = "ALL";
+let sportTab = "CRICKET";
+let categoryFilter = "ALL";
+let viewMode = "grid";
+let activeMatch = null;
+let activeSources = [];
+let activeSourceIndex = 0;
+let hlsInstance = null;
+let dashInstance = null;
+let hideTimer = null;
+let telemetryTimer = null;
+let toastTimer = null;
+let loadWatchdogTimer = null;
+let autoDiscover = true;
+let triedAuto = new Set();
+let playbackConfirmed = false;
+let handledShareSlug = false;
+let picture = { brightness: 100, contrast: 100, saturation: 100 };
+
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+function safeUrl(val) {
+  try {
+    const u = new URL(val);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : "";
+  } catch { return ""; }
+}
+
+function inferProtocol(url) {
+  if (/\.mpd(?:$|\?)|\/mpd\b/i.test(url)) return "DASH";
+  if (/\.m3u8(?:$|\?)|[?&](?:extension|format)=m3u8|m3u8|load-playlist/i.test(url)) return "HLS";
+  return "DIRECT";
+}
+
+function isClearKeyEmeAvailable() {
+  return (
+    typeof window !== "undefined" &&
+    Boolean(window.isSecureContext) &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.requestMediaKeySystemAccess === "function"
+  );
+}
+
+function serverPlayabilityScore(url, protocol, hasDrm) {
+  let score = 0;
+  const pageIsHttps = typeof window !== "undefined" && window.location?.protocol === "https:";
+  if (url.startsWith("https://")) score += 50;
+  else if (!pageIsHttps) score += 15;
+  if (hasDrm && !isClearKeyEmeAvailable()) score -= 200;
+  if (protocol === "HLS") score += 25;
+  else if (protocol === "DASH") score += 20;
+  else score += 10;
+  return score;
+}
+
+function pickDefaultServerIndex(sources) {
+  if (!sources.length) return 0;
+  const emeReady = isClearKeyEmeAvailable();
+  const workingIdx = sources.findIndex(s => workingTokens.has(s.tokenId) && (emeReady || !s.hasDrm));
+  if (workingIdx >= 0) return workingIdx;
+  const nonFailedIdx = sources.findIndex(s => !failedTokens.has(s.tokenId) && (emeReady || !s.hasDrm));
+  if (nonFailedIdx >= 0) return nonFailedIdx;
+  const fallbackIdx = sources.findIndex(s => !failedTokens.has(s.tokenId));
+  return fallbackIdx >= 0 ? fallbackIdx : 0;
+}
+
+function matchStatus(m) {
+  const st = String(m.status || "").trim().toUpperCase();
+  if (st === "LIVE") return "LIVE";
+  if (["ENDED", "FINISHED", "COMPLETED"].includes(st)) return "ENDED";
+  return "UPCOMING";
+}
+function isLive(m) { return matchStatus(m) === "LIVE"; }
+function isCricket(m) { return String(m.Category || "").trim().toLowerCase() === PRIORITY_CATEGORY; }
+function isFootball(m) { return String(m.Category || "").trim().toLowerCase() === SECOND_PRIORITY_CATEGORY; }
+function categoryPriorityRank(cat) {
+  const norm = String(cat || "").trim().toLowerCase();
+  if (norm === PRIORITY_CATEGORY) return 0;
+  if (norm === SECOND_PRIORITY_CATEGORY) return 1;
+  return 2;
+}
+function sportTabOf(m) {
+  if (isCricket(m)) return "CRICKET";
+  if (isFootball(m)) return "FOOTBALL";
+  return "OTHERS";
+}
+function streamsOf(m) { return Array.isArray(m.streams) ? m.streams : []; }
+function validStreams(m) { return streamsOf(m).filter(s => Boolean(s.tokenId)); }
+function eventInfo(m) { return m.eventInfo || {}; }
+function eventName(m) { const i = eventInfo(m); return i.eventName || m.event_name || "Sports Event"; }
+function teamA(m) { const i = eventInfo(m); return i.teamA || String(m.event_name || "").split(/\s+Vs\s+/i)[0]?.trim() || eventName(m); }
+function teamB(m) { const i = eventInfo(m); return i.teamB || String(m.event_name || "").split(/\s+Vs\s+/i)[1]?.trim() || ""; }
+function timeText(m) { return eventInfo(m).startTime || "Schedule TBD"; }
+function detectProtocol(s) {
+  return s?.protocol || "DIRECT";
+}
+function toClearKeyBase64Url(value) {
+  const trimmed = String(value || "").trim();
+  const hex = trimmed.replace(/-/g, "");
+  if (/^[0-9a-fA-F]{32}$/.test(hex)) {
+    let bin = "";
+    for (let i = 0; i < hex.length; i += 2) bin += String.fromCharCode(parseInt(hex.slice(i, i + 2), 16));
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  return trimmed.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function formatKidUuid(kid) {
+  const hex = String(kid || "").replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+  if (hex.length !== 32) return "";
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+}
+function patchMpdForClearKey(xml, fallbackKid) {
+  const fallbackUuid = formatKidUuid(fallbackKid);
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror") || !doc.documentElement) throw new Error("XML parse error");
+    const ns = doc.documentElement.namespaceURI || "urn:mpeg:dash:schema:mpd:2011";
+    const CENC_NS = "urn:mpeg:cenc:2013";
+    const WIDEVINE_URN = "edef8ba9-79d6-4ace-a3c8-27dcd51d21ed";
+    const PLAYREADY_URN = "9a04f079-9840-4286-ab92-e65be0885f95";
+    const CLEARKEY_URN = "urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e";
+    const W3C_CLEARKEY_ID = "1077efec-c0b2-4d02-ace3-3c1e52e2fb4b";
+    const MP4_PROT_URN = "urn:mpeg:dash:mp4protection:2011";
+
+    Array.from(doc.getElementsByTagNameNS("*", "ContentProtection")).forEach(el => {
+      const uri = (el.getAttribute("schemeIdUri") || "").toLowerCase();
+      if (uri.includes(WIDEVINE_URN) || uri.includes(PLAYREADY_URN)) {
+        el.parentNode && el.parentNode.removeChild(el);
+      }
+    });
+
+    Array.from(doc.getElementsByTagNameNS("*", "AdaptationSet")).forEach(asEl => {
+      const directChildren = Array.from(asEl.children).filter(c => c.localName === "ContentProtection");
+      const descendantCps = Array.from(asEl.getElementsByTagNameNS("*", "ContentProtection"));
+      let detectedKid = fallbackUuid;
+      for (const cp of descendantCps) {
+        const kidAttr = cp.getAttributeNS(CENC_NS, "default_KID") || cp.getAttribute("cenc:default_KID") || cp.getAttribute("default_KID");
+        if (kidAttr) { detectedKid = kidAttr; break; }
+      }
+      const hasMp4Prot = directChildren.some(c => (c.getAttribute("schemeIdUri") || "").toLowerCase() === MP4_PROT_URN);
+      const hasClearKey = directChildren.some(c => {
+        const u = (c.getAttribute("schemeIdUri") || "").toLowerCase();
+        return u.includes("e2719d58-a985-b3c9-781a-b030af78d30e") || u.includes(W3C_CLEARKEY_ID);
+      });
+      const firstRep = Array.from(asEl.children).find(c => c.localName === "Representation" || c.localName === "SegmentTemplate") || null;
+      if (!hasMp4Prot && detectedKid) {
+        const mp4El = doc.createElementNS(ns, "ContentProtection");
+        mp4El.setAttribute("schemeIdUri", MP4_PROT_URN);
+        mp4El.setAttribute("value", "cenc");
+        mp4El.setAttribute("xmlns:cenc", CENC_NS);
+        mp4El.setAttribute("cenc:default_KID", detectedKid);
+        asEl.insertBefore(mp4El, firstRep);
+      }
+      if (!hasClearKey) {
+        const ckEl = doc.createElementNS(ns, "ContentProtection");
+        ckEl.setAttribute("schemeIdUri", CLEARKEY_URN);
+        asEl.insertBefore(ckEl, firstRep);
+      }
+    });
+    return new XMLSerializer().serializeToString(doc);
+  } catch {
+    let patched = xml.replace(/<ContentProtection[^>]*?(?:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed|9a04f079-9840-4286-ab92-e65be0885f95)[^>]*?(?:\/>|>[\s\S]*?<\/ContentProtection>)/gi, "");
+    const mp4Tag = fallbackUuid ? `<ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc" cenc:default_KID="${fallbackUuid}" xmlns:cenc="urn:mpeg:cenc:2013"/>` : "";
+    const ckTag = '<ContentProtection schemeIdUri="urn:uuid:e2719d58-a985-b3c9-781a-b030af78d30e"/>';
+    return patched.replace(/<AdaptationSet\b[^>]*>/gi, m => m + mp4Tag + ckTag);
+  }
+}
+function formatTime(sec) {
+  if (!Number.isFinite(sec) || sec < 0) return "00:00";
+  const t = Math.floor(sec), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const pad = n => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+function logoHtml(primary, fallback, name, small = false) {
+  const u1 = safeUrl(primary), u2 = safeUrl(fallback);
+  const init = String(name || "?").trim().split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join("").toUpperCase() || "?";
+  const cls = small ? "sm" : "";
+  const fb = `<span class="logo-fallback ${cls}" style="display:${!u1 && !u2 ? "inline-flex" : "none"}" aria-hidden="true">${esc(init)}</span>`;
+  if (!u1 && !u2) return fb;
+  const first = u1 || u2;
+  const second = u1 && u2 && u1 !== u2 ? u2 : "";
+  return `<img class="logo-img ${cls}" src="${esc(first)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback="${esc(second)}" onerror="if(this.dataset.fallback){const n=this.dataset.fallback;this.dataset.fallback='';this.src=n;}else{this.style.display='none';this.nextElementSibling.style.display='inline-flex';}">${fb}`;
+}
+
+function showToast(msg) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = "none", 2600);
+}
+
+function getBaseMatches() {
+  const q = $("#searchInput").value.trim().toLowerCase();
+  return allMatches.map((m, idx) => ({ m, idx })).filter(({ m }) => {
+    const stOk = statusFilter === "ALL" || matchStatus(m) === statusFilter;
+    if (!stOk) return false;
+    if (!q) return true;
+    const hay = [m.event_name, eventName(m), teamA(m), teamB(m), m.Category, ...streamsOf(m).map(s => s.channel_name)].join(" ").toLowerCase();
+    return hay.includes(q);
+  });
+}
+
+function getFiltered() {
+  const rows = getBaseMatches().filter(({ m }) => {
+    const tabOk = sportTab === "ALL" || sportTabOf(m) === sportTab;
+    const catOk = categoryFilter === "ALL" || (m.Category || "Other") === categoryFilter;
+    return tabOk && catOk;
+  });
+  const sort = $("#sortSelect").value;
+  if (sort === "live") {
+    rows.sort((a, b) => {
+      const ld = Number(isLive(b.m)) - Number(isLive(a.m));
+      return ld !== 0 ? ld : categoryPriorityRank(a.m.Category) - categoryPriorityRank(b.m.Category);
+    });
+  } else if (sort === "name") {
+    rows.sort((a, b) => String(a.m.event_name || "").localeCompare(String(b.m.event_name || "")));
+  } else {
+    rows.sort((a, b) => categoryPriorityRank(a.m.Category) - categoryPriorityRank(b.m.Category));
+  }
+  return rows;
+}
+
+function getMatchSlug(m) {
+  const raw = m.event_name || eventName(m) || "match";
+  return raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "match";
+}
+
+function buildMatchShareUrl(m) {
+  const slug = getMatchSlug(m);
+  try {
+    const u = new URL(window.location.href);
+    u.search = "";
+    u.hash = "";
+    if (slug) u.searchParams.set("match", slug);
+    return u.toString();
+  } catch {
+    return "";
+  }
+}
+
+async function shareMatch(m) {
+  const url = buildMatchShareUrl(m);
+  const title = m.event_name || eventName(m);
+  const text = `Watch ${title} live on Sports Snap (${eventName(m)})`;
+
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function" && url) {
+    try {
+      await navigator.share({ title, text, url });
+      showToast(`Shared ${title}`);
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+  }
+
+  try {
+    if (navigator.clipboard && url) {
+      await navigator.clipboard.writeText(url);
+      showToast(`Match link copied — ${title}`);
+      return;
+    }
+  } catch {}
+
+  showToast(`Share ${title}: ${url || "Sports Snap"}`);
+}
+
+function cardHtml(m, idx) {
+  const i = eventInfo(m);
+  const st = matchStatus(m);
+  const live = st === "LIVE";
+  const streams = live ? validStreams(m) : [];
+  const playable = live && streams.length > 0;
+  const a = teamA(m), b = teamB(m);
+
+  return `<article class="card ${playable ? "playable" : "muted-card"}" data-index="${idx}">
+    <div class="card-kicker">
+      <div class="card-kicker-left">
+        ${live ? '<span class="live-inline"><span class="live-dot"></span>LIVE</span>' : `<span>${st === "UPCOMING" ? "Upcoming" : "Ended"}</span>`}
+        <span>·</span>
+        <span class="card-kicker-cat">${esc(m.Category || "Sports")}</span>
+      </div>
+      <span class="card-time">${esc(timeText(m))}</span>
+    </div>
+    <div class="matchup">
+      <div class="team-box">${logoHtml(i.teamAFlag, i.event_logo, a)}<span class="team-name" title="${esc(a)}">${esc(a)}</span></div>
+      <span class="vs-text">VS</span>
+      <div class="team-box">${logoHtml(i.teamBFlag, i.event_logo, b || a)}<span class="team-name" title="${esc(b)}">${esc(b || "—")}</span></div>
+    </div>
+    <div class="card-foot">
+      <div class="card-titles">
+        <div class="card-title">${esc(m.event_name || eventName(m))}</div>
+        <div class="card-league">${esc(eventName(m))}</div>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="share-btn" data-share-idx="${idx}" title="Share Match" aria-label="Share ${esc(m.event_name || eventName(m))}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Share</span>
+        </button>
+        ${playable ? `<span class="feed-cta">▶ ${streams.length} server${streams.length === 1 ? "" : "s"}</span>` : `<span class="feed-muted">${live ? "No server" : st === "UPCOMING" ? "Scheduled" : "Closed"}</span>`}
+      </div>
+    </div>
+  </article>`;
+}
+
+function listRowHtml(m, idx) {
+  const i = eventInfo(m);
+  const st = matchStatus(m);
+  const live = st === "LIVE";
+  const streams = live ? validStreams(m) : [];
+  const playable = live && streams.length > 0;
+  const a = teamA(m);
+
+  return `<div class="list-row ${playable ? "playable" : "muted-card"}" data-index="${idx}">
+    <div class="list-left">
+      ${logoHtml(i.teamAFlag, i.event_logo, a, true)}
+      <div class="list-info">
+        <div class="list-title">${esc(m.event_name || eventName(m))}</div>
+        <div class="list-sub">
+          ${live ? '<span class="live-inline"><span class="live-dot"></span>LIVE</span>' : `<span>${st === "UPCOMING" ? "Upcoming" : "Ended"}</span>`}
+          <span>·</span><span>${esc(m.Category || "Sports")}</span>
+          <span>·</span><span>${esc(eventName(m))}</span>
+        </div>
+      </div>
+    </div>
+    <div class="list-right">
+      <span class="card-time">${esc(timeText(m))}</span>
+      <button type="button" class="share-btn" data-share-idx="${idx}" title="Share Match" aria-label="Share ${esc(m.event_name || eventName(m))}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>Share</span>
+      </button>
+      ${playable ? `<span class="list-watch-btn">▶ Watch (${streams.length})</span>` : `<span class="feed-muted">${live ? "No server" : st === "UPCOMING" ? "Scheduled" : "Closed"}</span>`}
+    </div>
+  </div>`;
+}
+
+function renderSportTabs() {
+  const base = getBaseMatches();
+  const stats = {
+    CRICKET: { total: 0, live: 0 },
+    FOOTBALL: { total: 0, live: 0 },
+    OTHERS: { total: 0, live: 0 }
+  };
+  base.forEach(({ m }) => {
+    const t = sportTabOf(m);
+    stats[t].total++;
+    if (isLive(m)) stats[t].live++;
+  });
+
+  const defs = [
+    { key: "CRICKET", label: "Cricket" },
+    { key: "FOOTBALL", label: "Football" },
+    { key: "OTHERS", label: "Others" }
+  ];
+
+  const box = $("#sportTabs");
+  box.innerHTML = defs.map(d => {
+    const st = stats[d.key];
+    const active = sportTab === d.key;
+    return `<button type="button" class="sport-tab ${active ? "active" : ""}" role="tab" aria-selected="${active}" data-sport-tab="${d.key}">
+      <span class="sport-tab-label">${d.label}</span>
+      <span class="sport-tab-meta">
+        ${st.live > 0 ? `<span class="sport-tab-live"><span class="live-dot"></span>${st.live}</span>` : ""}
+        <span>${st.total}</span>
+      </span>
+    </button>`;
+  }).join("");
+
+  box.querySelectorAll("[data-sport-tab]").forEach(btn => {
+    btn.onclick = () => {
+      sportTab = btn.dataset.sportTab;
+      categoryFilter = "ALL";
+      renderCategories();
+      render();
+    };
+  });
+}
+
+function renderCategories() {
+  const counts = new Map();
+  allMatches.forEach(m => {
+    const c = m.Category || "Other";
+    const cur = counts.get(c) || { total: 0, live: 0 };
+    cur.total++;
+    if (isLive(m)) cur.live++;
+    counts.set(c, cur);
+  });
+
+  const sorted = [...counts.entries()].sort((a, b) => {
+    const rd = categoryPriorityRank(a[0]) - categoryPriorityRank(b[0]);
+    return rd !== 0 ? rd : a[0].localeCompare(b[0]);
+  });
+
+  const allActive = sportTab === "ALL" && categoryFilter === "ALL";
+  let html = `<button type="button" class="cat-btn ${allActive ? "active" : ""}" data-category="ALL">
+    <span>All Sports</span><span class="cat-counts"><span class="cat-total">${allMatches.length}</span></span>
+  </button>`;
+
+  html += sorted.map(([name, c]) => {
+    const lower = name.toLowerCase();
+    const isActive =
+      (lower === "cricket" && sportTab === "CRICKET" && categoryFilter === "ALL") ||
+      (lower === "football" && sportTab === "FOOTBALL" && categoryFilter === "ALL") ||
+      (lower !== "cricket" && lower !== "football" && sportTab === "OTHERS" && categoryFilter === name);
+    return `<button type="button" class="cat-btn ${isActive ? "active" : ""}" data-category="${esc(name)}">
+      <span>${esc(name)}</span>
+      <span class="cat-counts">${c.live ? `<span class="cat-live">${c.live} live</span>` : ""}<span class="cat-total">${c.total}</span></span>
+    </button>`;
+  }).join("");
+
+  const list = $("#categoryList");
+  list.innerHTML = html;
+  list.querySelectorAll("[data-category]").forEach(btn => {
+    btn.onclick = () => {
+      const val = btn.dataset.category;
+      if (val === "ALL") {
+        sportTab = "ALL";
+        categoryFilter = "ALL";
+      } else {
+        const lower = val.toLowerCase();
+        if (lower === PRIORITY_CATEGORY) {
+          sportTab = "CRICKET";
+          categoryFilter = "ALL";
+        } else if (lower === SECOND_PRIORITY_CATEGORY) {
+          sportTab = "FOOTBALL";
+          categoryFilter = "ALL";
+        } else {
+          sportTab = "OTHERS";
+          categoryFilter = val;
+        }
+      }
+      renderCategories();
+      render();
+    };
+  });
+}
+
+function render() {
+  $$(".topnav-link, .mobile-nav-btn").forEach(b => b.classList.toggle("active", b.dataset.status === statusFilter));
+  const q = $("#searchInput").value.trim();
+  $("#searchClear").classList.toggle("show", Boolean(q));
+
+  const hasFilters = statusFilter !== "ALL" || categoryFilter !== "ALL" || q !== "" || $("#sortSelect").value !== "default";
+  $("#resetFiltersBtn").style.display = hasFilters ? "inline" : "none";
+
+  const labels = { ALL: "All Fixtures", LIVE: "Live Broadcasts", UPCOMING: "Upcoming Fixtures", ENDED: "Finished Events" };
+  const tabLabel = sportTab === "CRICKET"
+    ? "Cricket"
+    : sportTab === "FOOTBALL"
+      ? "Football"
+      : sportTab === "OTHERS"
+        ? (categoryFilter !== "ALL" ? categoryFilter : "Other Sports")
+        : "All Sports";
+  $("#sectionHeading").textContent = `${labels[statusFilter]} · ${tabLabel}`;
+
+  renderSportTabs();
+
+  const rows = getFiltered();
+  $("#fixtureCount").textContent = `${rows.length} fixture${rows.length === 1 ? "" : "s"}`;
+
+  const area = $("#contentArea");
+  if (!rows.length) {
+    area.innerHTML = `<div class="state-box">
+      <h3>No matching fixtures</h3>
+      <p>Adjust your search keywords, sport tab, or status filter to see available matches.</p>
+      ${hasFilters ? '<button type="button" class="primary-cta secondary" id="emptyReset">Clear All Filters</button>' : ""}
+    </div>`;
+    const er = $("#emptyReset");
+    if (er) er.onclick = resetFilters;
+    return;
+  }
+
+  const renderGroup = (items, title, showTitle) => {
+    const body = viewMode === "grid"
+      ? `<div class="cards-grid">${items.map(({ m, idx }) => cardHtml(m, idx)).join("")}</div>`
+      : `<div class="list-wrap">${items.map(({ m, idx }) => listRowHtml(m, idx)).join("")}</div>`;
+    if (!showTitle) return body;
+    return `<section class="group-wrap"><div class="group-head"><h3>${esc(title)}</h3><span>${items.length}</span></div>${body}</section>`;
+  };
+
+  const cricket = rows.filter(r => isCricket(r.m));
+  const football = rows.filter(r => isFootball(r.m));
+  const other = rows.filter(r => !isCricket(r.m) && !isFootball(r.m));
+  const groups = [
+    cricket.length ? renderGroup(cricket, "Cricket", true) : "",
+    football.length ? renderGroup(football, "Football", true) : "",
+    other.length ? renderGroup(other, "Other Sports", true) : ""
+  ].filter(Boolean);
+
+  if (sportTab === "ALL" && groups.length > 1) {
+    area.innerHTML = `<div style="display:flex;flex-direction:column;gap:28px">${groups.join("")}</div>`;
+  } else {
+    area.innerHTML = renderGroup([...cricket, ...football, ...other], "", false);
+  }
+
+  area.querySelectorAll("[data-share-idx]").forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const match = allMatches[Number(btn.dataset.shareIdx)];
+      if (match) shareMatch(match);
+    };
+  });
+
+  area.querySelectorAll("[data-index]").forEach(el => {
+    el.onclick = () => openMatchByIndex(Number(el.dataset.index));
+  });
+}
+
+function resetFilters() {
+  statusFilter = "ALL";
+  sportTab = "CRICKET";
+  categoryFilter = "ALL";
+  $("#searchInput").value = "";
+  $("#sortSelect").value = "default";
+  renderCategories();
+  render();
+}
+
+function openMatchByIndex(idx) {
+  const m = allMatches[idx];
+  if (!m) return;
+  if (!isLive(m)) {
+    showToast(matchStatus(m) === "UPCOMING" ? `Scheduled · ${timeText(m)}` : "This broadcast has ended");
+    return;
+  }
+  const streams = validStreams(m);
+  if (!streams.length) {
+    showToast("No playable feeds available for this match yet");
+    return;
+  }
+  openPlayer(m, streams);
+}
+
+/* ===================== SPORTS SNAP PLAYER ENGINE ===================== */
+function destroyPlayerEngines() {
+  const v = $("#videoEl");
+  if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+  if (dashInstance) { try { dashInstance.reset(); } catch {} dashInstance = null; }
+  v.pause();
+  v.removeAttribute("src");
+  v.load();
+}
+
+function setPane(paneId) {
+  $$(".panel-tab").forEach(t => t.classList.toggle("active", t.dataset.pane === paneId));
+  $$(".panel-pane").forEach(p => p.classList.toggle("active", p.id === paneId));
+}
+
+function updateVideoFilter() {
+  $("#videoEl").style.filter = `brightness(${picture.brightness}%) contrast(${picture.contrast}%) saturate(${picture.saturation}%)`;
+}
+
+function advanceToNextPlayableServer(failedTokenId) {
+  if (failedTokenId) failedTokens.add(failedTokenId);
+  if (!autoDiscover || activeSources.length <= 1) return false;
+  const nextIdx = activeSources.findIndex((_, i) => !triedAuto.has(i));
+  if (nextIdx < 0) {
+    autoDiscover = false;
+    return false;
+  }
+  triedAuto.add(nextIdx);
+  showToast(`Switching to ${activeSources[nextIdx]?.channel_name || `Server ${nextIdx + 1}`}…`);
+  loadStreamSource(nextIdx, true);
+  return true;
+}
+
+function confirmPlaybackWorking() {
+  clearTimeout(loadWatchdogTimer);
+  loadWatchdogTimer = null;
+  playbackConfirmed = true;
+  autoDiscover = false;
+  const cur = activeSources[activeSourceIndex];
+  if (cur?.tokenId) {
+    workingTokens.add(cur.tokenId);
+    failedTokens.delete(cur.tokenId);
+  }
+}
+
+function loadStreamSource(idx, fromAuto = false) {
+  if (!fromAuto) autoDiscover = false;
+  clearTimeout(loadWatchdogTimer);
+  loadWatchdogTimer = null;
+  playbackConfirmed = false;
+  activeSourceIndex = idx;
+  const s = activeSources[idx];
+  if (!s) return;
+
+  const secret = streamVault.get(s.tokenId);
+  if (!secret) {
+    if (advanceToNextPlayableServer(s.tokenId)) return;
+    $("#stageLoader").classList.remove("show");
+    $("#stageErrorMsg").textContent = "Protected server unavailable. Change server below.";
+    $("#stageError").classList.add("show");
+    return;
+  }
+
+  $$(".source-item").forEach((el, i) => {
+    el.classList.toggle("active", i === idx);
+    const tag = el.querySelector(".source-active-tag");
+    if (tag) tag.style.display = i === idx ? "inline" : "none";
+  });
+
+  const proto = detectProtocol(s);
+  const hasClearKey = Boolean(secret.kid && secret.key);
+  const protoLabel = hasClearKey || s.hasDrm ? `${proto} · ClearKey DRM` : proto;
+  $("#playerChannelName").textContent = s.channel_name || `Server ${idx + 1}`;
+  $("#playerProto").textContent = protoLabel;
+  $("#stageResBadge").textContent = proto;
+  $("#stageError").classList.remove("show");
+  $("#stageLoader").classList.add("show");
+  $("#qualitySelect").innerHTML = '<option value="-1">Auto</option>';
+  $("#audioSelect").style.display = "none";
+  $("#audioSelect").innerHTML = "";
+
+  const v = $("#videoEl");
+  const lowLat = $("#lowLatencyChk").checked;
+  const autoRec = $("#autoRecoverChk").checked;
+
+  destroyPlayerEngines();
+  v.volume = Number($("#volSlider").value);
+  v.playbackRate = Number($("#speedSelect").value);
+
+  if (autoDiscover && activeSources.length > 1) {
+    const tokenForTimeout = s.tokenId;
+    loadWatchdogTimer = setTimeout(() => {
+      if (!playbackConfirmed) {
+        advanceToNextPlayableServer(tokenForTimeout);
+      }
+    }, 7000);
+  }
+
+  if (proto === "DASH") {
+    if (hasClearKey && !isClearKeyEmeAvailable()) {
+      clearTimeout(loadWatchdogTimer);
+      if (advanceToNextPlayableServer(s.tokenId)) return;
+      $("#stageLoader").classList.remove("show");
+      $("#stageErrorMsg").textContent = "ClearKey DASH DRM requires HTTPS or http://localhost (browser DRM is blocked on file://, LAN IP, or plain http://). Open on http://localhost or host over HTTPS, or pick an HLS server below.";
+      $("#stageError").classList.add("show");
+      return;
+    }
+
+    dashInstance = dashjs.MediaPlayer().create();
+    dashInstance.updateSettings({
+      streaming: {
+        delay: { liveDelay: lowLat ? 6 : 12 },
+        gaps: { jumpGaps: true, jumpLargeGaps: true, smallGapLimit: 2.5, enableStallFix: true },
+        ...(hasClearKey ? { protection: { ignoreEmeEncryptedEvent: true } } : {})
+      }
+    });
+    dashInstance.initialize(v, undefined, true);
+    if (hasClearKey) {
+      const kidHex = secret.kid;
+      const keyHex = secret.key;
+      dashInstance.addResponseInterceptor(async response => {
+        let xmlText = "";
+        if (typeof response.data === "string") xmlText = response.data;
+        else if (response.data instanceof ArrayBuffer) xmlText = new TextDecoder("utf-8").decode(response.data);
+        if (xmlText && xmlText.includes("<MPD")) {
+          const patched = patchMpdForClearKey(xmlText, kidHex);
+          response.data = response.data instanceof ArrayBuffer ? new TextEncoder().encode(patched).buffer : patched;
+        }
+        return response;
+      });
+      dashInstance.setProtectionData({
+        "org.w3.clearkey": {
+          priority: 0,
+          clearkeys: { [toClearKeyBase64Url(kidHex)]: toClearKeyBase64Url(keyHex) }
+        }
+      });
+    }
+    dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+      $("#stageLoader").classList.remove("show");
+      const reps = dashInstance.getRepresentationsByType("video") || [];
+      const opts = ['<option value="-1">Auto</option>'].concat(
+        reps.map((r, i) => `<option value="${r.absoluteIndex ?? i}">${r.height ? r.height + "p" : "Track " + (i+1)} (${(r.bandwidth/1e6).toFixed(1)}M)</option>`)
+      );
+      $("#qualitySelect").innerHTML = opts.join("");
+      const atracks = dashInstance.getTracksFor("audio") || [];
+      if (atracks.length > 1) {
+        $("#audioSelect").style.display = "inline-block";
+        $("#audioSelect").innerHTML = atracks.map((t, i) => `<option value="${i}">${t.lang ? t.lang.toUpperCase() : "Audio " + (i+1)}</option>`).join("");
+      }
+    });
+    dashInstance.on(dashjs.MediaPlayer.events.ERROR, () => {
+      clearTimeout(loadWatchdogTimer);
+      if (advanceToNextPlayableServer(s.tokenId)) return;
+      $("#stageLoader").classList.remove("show");
+      $("#stageErrorMsg").textContent = "Unable to decode this server. Wait a few seconds or change server below.";
+      $("#stageError").classList.add("show");
+    });
+    dashInstance.attachSource(secret.stream_url);
+  } else if (proto === "HLS" && Hls.isSupported()) {
+    hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: lowLat, backBufferLength: 30 });
+    hlsInstance.loadSource(secret.stream_url);
+    hlsInstance.attachMedia(v);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, (_e, data) => {
+      $("#stageLoader").classList.remove("show");
+      const lvls = data.levels || [];
+      const opts = ['<option value="-1">Auto</option>'].concat(
+        lvls.map((l, i) => `<option value="${i}">${l.height ? l.height + "p" : "Level " + (i+1)} (${(l.bitrate/1e6).toFixed(1)}M)</option>`)
+      );
+      $("#qualitySelect").innerHTML = opts.join("");
+      v.play().catch(() => {});
+    });
+    hlsInstance.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_e, data) => {
+      const tracks = data.audioTracks || [];
+      if (tracks.length > 1) {
+        $("#audioSelect").style.display = "inline-block";
+        $("#audioSelect").innerHTML = tracks.map((t, i) => `<option value="${i}">${esc(t.name || t.lang || "Track " + (i+1))}</option>`).join("");
+      }
+    });
+    hlsInstance.on(Hls.Events.ERROR, (_e, data) => {
+      if (!data.fatal) return;
+      if (autoDiscover && activeSources.length > 1) {
+        clearTimeout(loadWatchdogTimer);
+        if (advanceToNextPlayableServer(s.tokenId)) return;
+      }
+      if (autoRec) {
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { hlsInstance.startLoad(); return; }
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { hlsInstance.recoverMediaError(); return; }
+      }
+      clearTimeout(loadWatchdogTimer);
+      $("#stageLoader").classList.remove("show");
+      $("#stageErrorMsg").textContent = "Server connection failed or blocked. Change server below or wait a few seconds.";
+      $("#stageError").classList.add("show");
+    });
+  } else {
+    v.src = secret.stream_url;
+    v.play().catch(() => {});
+  }
+}
+
+function openPlayer(match, streams) {
+  activeMatch = match;
+  activeSources = streams;
+  const defaultIdx = pickDefaultServerIndex(streams);
+  autoDiscover = true;
+  triedAuto = new Set([defaultIdx]);
+  playbackConfirmed = false;
+
+  $("#playerMatchTitle").textContent = match.event_name || eventName(match);
+  $("#tabSources").textContent = `Servers (${streams.length})`;
+  setPane("sourcesPane");
+
+  const list = $("#sourcesList");
+  list.innerHTML = streams.map((s, i) => {
+    const proto = detectProtocol(s);
+    const drm = s.hasDrm ? " · ClearKey DRM" : "";
+    return `<button type="button" class="source-item ${i === defaultIdx ? "active" : ""}" data-src-idx="${i}">
+      <div>
+        <div class="source-name">${esc(s.channel_name || "Server " + (i + 1))}</div>
+        <div class="source-proto">${proto}${drm}</div>
+      </div>
+      <span class="source-active-tag" style="display:${i === defaultIdx ? "inline" : "none"}">Active</span>
+    </button>`;
+  }).join("");
+
+  list.querySelectorAll("[data-src-idx]").forEach(b => {
+    b.onclick = () => {
+      autoDiscover = false;
+      loadStreamSource(Number(b.dataset.srcIdx), false);
+    };
+  });
+
+  $("#playerOverlay").classList.add("open");
+  loadStreamSource(defaultIdx, true);
+  startTelemetry();
+}
+
+function closePlayer() {
+  clearTimeout(loadWatchdogTimer);
+  loadWatchdogTimer = null;
+  clearInterval(telemetryTimer);
+  destroyPlayerEngines();
+  activeMatch = null;
+  $("#playerOverlay").classList.remove("open");
+}
+
+function startTelemetry() {
+  clearInterval(telemetryTimer);
+  telemetryTimer = setInterval(() => {
+    const v = $("#videoEl");
+    if (!activeMatch || !v) return;
+
+    const cur = v.currentTime || 0;
+    const dur = v.duration;
+    const seekEnd = v.seekable && v.seekable.length ? v.seekable.end(v.seekable.length - 1) : 0;
+    const live = !Number.isFinite(dur) || dur === Infinity;
+    const maxT = live ? seekEnd : (dur || 0);
+
+    let bufEnd = 0, bufAhead = 0;
+    if (v.buffered && v.buffered.length) {
+      for (let i = 0; i < v.buffered.length; i++) {
+        if (cur >= v.buffered.start(i) - 0.5 && cur <= v.buffered.end(i) + 0.5) {
+          bufEnd = v.buffered.end(i);
+          bufAhead = Math.max(0, bufEnd - cur);
+          break;
+        }
+      }
+    }
+
+    if (dashInstance && !v.paused && v.readyState < 3 && v.buffered && v.buffered.length > 0) {
+      let insideBuffered = false;
+      for (let i = 0; i < v.buffered.length; i++) {
+        if (cur >= v.buffered.start(i) - 0.25 && cur <= v.buffered.end(i) + 0.25) {
+          insideBuffered = true;
+          break;
+        }
+      }
+      if (!insideBuffered) {
+        const targetIdx = v.buffered.length - 1;
+        const bStart = v.buffered.start(targetIdx);
+        const bEnd = v.buffered.end(targetIdx);
+        if (bEnd - bStart >= 0.3) {
+          v.currentTime = bStart + 0.05;
+          v.play().catch(() => {});
+        }
+      }
+    }
+
+    const behind = live && seekEnd > 0 && (seekEnd - cur) > 12;
+    const lj = $("#liveJumpBtn");
+    const tc = $("#timecodeEl");
+    if (live) {
+      lj.style.display = "inline-flex";
+      tc.style.display = "none";
+      lj.classList.toggle("behind", behind);
+      lj.innerHTML = `<span class="live-dot"></span><span>${behind ? "Go Live" : "LIVE"}</span>`;
+    } else {
+      lj.style.display = "none";
+      tc.style.display = "inline";
+      tc.textContent = `${formatTime(cur)} / ${formatTime(maxT)}`;
+    }
+
+    $("#seekInput").max = maxT || 100;
+    $("#seekInput").value = live && !behind ? (maxT || 100) : cur;
+    $("#seekBuffered").style.width = maxT > 0 ? `${Math.min(100, (bufEnd / maxT) * 100)}%` : "0%";
+    $("#seekPlayed").style.width = live && !behind ? "100%" : (maxT > 0 ? `${Math.min(100, (cur / maxT) * 100)}%` : "0%");
+
+    const res = v.videoWidth && v.videoHeight ? `${v.videoWidth}x${v.videoHeight}` : "—";
+    $("#stageResBadge").textContent = res !== "—" ? res : detectProtocol(activeSources[activeSourceIndex]);
+    $("#telRes").textContent = res;
+    $("#telBuf").textContent = `${bufAhead.toFixed(1)}s`;
+    const q = v.getVideoPlaybackQuality ? v.getVideoPlaybackQuality() : null;
+    $("#telDrop").textContent = q ? q.droppedVideoFrames : 0;
+    $("#telState").textContent = $("#stageError").classList.contains("show") ? "Error" : (v.paused ? "Paused" : (v.readyState < 3 ? "Buffering" : "Playing"));
+
+    let br = "Auto";
+    if (hlsInstance) {
+      const l = hlsInstance.levels?.[hlsInstance.currentLevel];
+      if (l?.bitrate) br = `${(l.bitrate / 1e6).toFixed(2)} Mbps`;
+    } else if (dashInstance) {
+      try {
+        const rep = dashInstance.getCurrentRepresentationForType("video");
+        if (rep?.bandwidth) br = `${(rep.bandwidth / 1e6).toFixed(2)} Mbps`;
+      } catch {}
+    }
+    $("#telBitrate").textContent = br;
+  }, 500);
+}
+
+function scheduleHideTransport() {
+  $("#transportOverlay").classList.remove("hidden");
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    if (!$("#videoEl").paused) $("#transportOverlay").classList.add("hidden");
+  }, 3200);
+}
+
+function captureSnapshot() {
+  const v = $("#videoEl");
+  if (!v.videoWidth || !v.videoHeight) { showToast("Wait for video frame before taking a snap"); return; }
+  try {
+    const c = document.createElement("canvas");
+    c.width = v.videoWidth;
+    c.height = v.videoHeight;
+    const ctx = c.getContext("2d");
+    ctx.filter = `brightness(${picture.brightness}%) contrast(${picture.contrast}%) saturate(${picture.saturation}%)`;
+    ctx.drawImage(v, 0, 0, c.width, c.height);
+    const a = document.createElement("a");
+    a.href = c.toDataURL("image/png");
+    a.download = "sports-snap-capture.png";
+    a.click();
+    showToast("Snapshot saved");
+  } catch {
+    showToast("Snapshot blocked by stream CORS policy");
+  }
+}
+
+/* ===================== DATA FETCH & EVENTS ===================== */
+async function loadData() {
+  try {
+    const res = await fetch(atob(_EP.join("")), { cache: "no-store" });
+    if (!res.ok) throw new Error("Feed returned HTTP " + res.status);
+    const data = await res.json();
+    const rawList = Array.isArray(data) ? data : (Array.isArray(data.matches) ? data.matches : []);
+    streamVault.clear();
+    allMatches = rawList.map(m => {
+      const rawStreams = Array.isArray(m.streams) ? m.streams : [];
+      const safeStreams = [];
+      for (const s of rawStreams) {
+        const cleanUrl = safeUrl(s.stream_url);
+        if (!cleanUrl) continue;
+        tokenSeq += 1;
+        const tokenId = `ss_${tokenSeq}_${Math.random().toString(36).slice(2, 10)}`;
+        streamVault.set(tokenId, {
+          stream_url: cleanUrl,
+          kid: s.kid || undefined,
+          key: s.key || undefined
+        });
+        const protocol = inferProtocol(cleanUrl);
+        const hasDrm = Boolean(s.kid && s.key);
+        safeStreams.push({
+          tokenId,
+          channel_name: s.channel_name,
+          protocol,
+          hasDrm,
+          _score: serverPlayabilityScore(cleanUrl, protocol, hasDrm)
+        });
+      }
+      safeStreams.sort((a, b) => b._score - a._score);
+      safeStreams.forEach(s => { delete s._score; });
+      return {
+        event_name: m.event_name,
+        status: m.status,
+        Category: m.Category,
+        eventInfo: m.eventInfo,
+        streams: safeStreams
+      };
+    });
+
+    const liveN = Number.isFinite(data.live_match) ? data.live_match : allMatches.filter(isLive).length;
+    const totalN = Number.isFinite(data.total_matches) ? data.total_matches : allMatches.length;
+    const upN = allMatches.filter(m => matchStatus(m) === "UPCOMING").length;
+    const chN = allMatches.reduce((n, m) => n + validStreams(m).length, 0);
+
+    $("#sumTotal").textContent = totalN;
+    $("#sumLive").textContent = liveN;
+    $("#sumUpcoming").textContent = upN;
+    $("#sumChannels").textContent = chN.toLocaleString();
+    $("#updatedLabel").textContent = data.last_update_time ? "Updated " + data.last_update_time : "Feed synced";
+
+    let firstPlayable = allMatches.findIndex(m => isLive(m) && validStreams(m).length > 0 && isCricket(m));
+    if (firstPlayable < 0) firstPlayable = allMatches.findIndex(m => isLive(m) && validStreams(m).length > 0 && isFootball(m));
+    if (firstPlayable < 0) firstPlayable = allMatches.findIndex(m => isLive(m) && validStreams(m).length > 0);
+    const cta = $("#headerActionBtn");
+    if (firstPlayable >= 0) {
+      cta.textContent = "▶ Watch Live";
+      cta.className = "primary-cta";
+      cta.onclick = () => openMatchByIndex(firstPlayable);
+    } else {
+      cta.textContent = "Refresh Feeds";
+      cta.className = "primary-cta secondary";
+      cta.onclick = loadData;
+    }
+
+    if (!handledShareSlug) {
+      handledShareSlug = true;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const targetSlug = (params.get("match") || "").trim().toLowerCase();
+        if (targetSlug) {
+          const foundIdx = allMatches.findIndex(m => getMatchSlug(m) === targetSlug);
+          if (foundIdx >= 0) {
+            const target = allMatches[foundIdx];
+            sportTab = sportTabOf(target);
+            const streams = validStreams(target);
+            if (isLive(target) && streams.length > 0) {
+              openPlayer(target, streams);
+            } else {
+              showToast(`${target.event_name || eventName(target)} · ${matchStatus(target) === "UPCOMING" ? timeText(target) : "Broadcast ended"}`);
+            }
+          }
+        }
+      } catch {}
+    }
+
+    renderCategories();
+    render();
+  } catch (err) {
+    $("#contentArea").innerHTML = `<div class="state-box">
+      <h3>Unable to reach sports data feed</h3>
+      <p>${esc(err.message || "Network error")}</p>
+      <button type="button" class="primary-cta" id="retryFeedDataBtn">Try Again</button>
+    </div>`;
+    const rf = $("#retryFeedDataBtn");
+    if (rf) rf.onclick = loadData;
+    $("#updatedLabel").textContent = "Connection error";
+    $("#fixtureCount").textContent = "Unavailable";
+  }
+}
+
+// Navigation & Filters
+$$("[data-status]").forEach(btn => {
+  btn.onclick = () => { statusFilter = btn.dataset.status; render(); };
+});
+$("#brandReset").onclick = e => { e.preventDefault(); resetFilters(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+$("#searchInput").oninput = render;
+$("#searchClear").onclick = () => { $("#searchInput").value = ""; render(); };
+$("#sortSelect").onchange = render;
+$("#resetFiltersBtn").onclick = resetFilters;
+$("#syncBtn").onclick = loadData;
+$("#gridViewBtn").onclick = () => { viewMode = "grid"; $("#gridViewBtn").classList.add("active"); $("#listViewBtn").classList.remove("active"); render(); };
+$("#listViewBtn").onclick = () => { viewMode = "list"; $("#listViewBtn").classList.add("active"); $("#gridViewBtn").classList.remove("active"); render(); };
+
+// Player Controls Wiring
+const videoEl = $("#videoEl");
+videoEl.onplay = () => { $("#playPauseBtn").textContent = "❚❚"; $("#stageLoader").classList.remove("show"); confirmPlaybackWorking(); scheduleHideTransport(); };
+videoEl.onpause = () => { $("#playPauseBtn").textContent = "▶"; $("#transportOverlay").classList.remove("hidden"); };
+videoEl.onwaiting = () => $("#stageLoader").classList.add("show");
+videoEl.oncanplay = () => { $("#stageLoader").classList.remove("show"); confirmPlaybackWorking(); };
+videoEl.onerror = () => {
+  const cur = activeSources[activeSourceIndex];
+  if (cur && detectProtocol(cur) === "DIRECT") {
+    clearTimeout(loadWatchdogTimer);
+    if (advanceToNextPlayableServer(cur.tokenId)) return;
+    $("#stageLoader").classList.remove("show");
+    $("#stageErrorMsg").textContent = "Unable to play this server. Wait a few seconds or change server below.";
+    $("#stageError").classList.add("show");
+  }
+};
+videoEl.onclick = () => videoEl.paused ? videoEl.play().catch(() => {}) : videoEl.pause();
+videoEl.ondblclick = () => $("#fsBtn").click();
+
+$("#videoStage").onmousemove = scheduleHideTransport;
+$("#playPauseBtn").onclick = () => videoEl.paused ? videoEl.play().catch(() => {}) : videoEl.pause();
+$("#rwBtn").onclick = () => { videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); };
+$("#fwBtn").onclick = () => { videoEl.currentTime = videoEl.currentTime + 10; };
+$("#muteBtn").onclick = () => { videoEl.muted = !videoEl.muted; $("#muteBtn").textContent = videoEl.muted ? "🔇" : "🔊"; };
+$("#volSlider").oninput = e => { videoEl.volume = Number(e.target.value); videoEl.muted = videoEl.volume === 0; $("#muteBtn").textContent = videoEl.muted ? "🔇" : "🔊"; };
+$("#seekInput").oninput = e => { videoEl.currentTime = Number(e.target.value); };
+$("#liveJumpBtn").onclick = () => {
+  if (hlsInstance?.liveSyncPosition) videoEl.currentTime = hlsInstance.liveSyncPosition;
+  else if (videoEl.seekable.length) videoEl.currentTime = videoEl.seekable.end(videoEl.seekable.length - 1);
+  videoEl.play().catch(() => {});
+};
+$("#speedSelect").onchange = e => { videoEl.playbackRate = Number(e.target.value); };
+$("#qualitySelect").onchange = e => {
+  const idx = Number(e.target.value);
+  if (hlsInstance) hlsInstance.currentLevel = idx;
+  else if (dashInstance) {
+    dashInstance.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: idx === -1 } } } });
+    if (idx !== -1) dashInstance.setRepresentationForTypeByIndex("video", idx);
+  }
+};
+$("#audioSelect").onchange = e => {
+  const idx = Number(e.target.value);
+  if (hlsInstance) hlsInstance.audioTrack = idx;
+  else if (dashInstance) {
+    const tr = dashInstance.getTracksFor("audio");
+    if (tr?.[idx]) dashInstance.setCurrentTrack(tr[idx]);
+  }
+};
+$("#snapBtn").onclick = captureSnapshot;
+$("#fsBtn").onclick = () => document.fullscreenElement ? document.exitFullscreen() : $("#videoStage").requestFullscreen().catch(() => {});
+$("#pipBtn").onclick = () => document.pictureInPictureElement ? document.exitPictureInPicture() : videoEl.requestPictureInPicture().catch(() => showToast("PiP unavailable"));
+$("#theaterBtn").onclick = () => { $("#playerShell").classList.toggle("theater"); $("#theaterBtn").classList.toggle("active"); };
+$("#shareMatchBtn").onclick = () => { if (activeMatch) shareMatch(activeMatch); };
+$("#reloadStreamBtn").onclick = () => { autoDiscover = false; loadStreamSource(activeSourceIndex, false); };
+$("#retryFeedBtn").onclick = () => { autoDiscover = false; loadStreamSource(activeSourceIndex, false); };
+$("#nextSourceBtn").onclick = () => { autoDiscover = false; loadStreamSource((activeSourceIndex + 1) % activeSources.length, false); };
+$("#closePlayerBtn").onclick = closePlayer;
+$("#playerOverlay").onclick = e => { if (e.target === $("#playerOverlay")) closePlayer(); };
+
+$$(".panel-tab").forEach(t => t.onclick = () => setPane(t.dataset.pane));
+
+$$("#fitButtons .fit-btn").forEach(b => {
+  b.onclick = () => {
+    $$("#fitButtons .fit-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    videoEl.className = b.dataset.fit === "cover" ? "fit-cover" : b.dataset.fit === "16:9" ? "fit-16-9" : b.dataset.fit === "4:3" ? "fit-4-3" : "";
+  };
+});
+
+$("#brightSlider").oninput = e => { picture.brightness = Number(e.target.value); $("#valBright").textContent = picture.brightness + "%"; updateVideoFilter(); };
+$("#contrastSlider").oninput = e => { picture.contrast = Number(e.target.value); $("#valContrast").textContent = picture.contrast + "%"; updateVideoFilter(); };
+$("#satSlider").oninput = e => { picture.saturation = Number(e.target.value); $("#valSat").textContent = picture.saturation + "%"; updateVideoFilter(); };
+$("#resetPictureBtn").onclick = () => {
+  picture = { brightness: 100, contrast: 100, saturation: 100 };
+  $("#brightSlider").value = 100; $("#contrastSlider").value = 100; $("#satSlider").value = 100;
+  $("#valBright").textContent = "100%"; $("#valContrast").textContent = "100%"; $("#valSat").textContent = "100%";
+  updateVideoFilter();
+};
+
+/* Strict Privacy Shield */
+const isInputEl = target => target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA");
+let lastShieldWarn = 0;
+const shieldWarn = msg => {
+  const now = Date.now();
+  if (now - lastShieldWarn > 1200) {
+    lastShieldWarn = now;
+    showToast(msg);
+  }
+};
+const noop = () => {};
+try {
+  console.log = noop;
+  console.info = noop;
+  console.debug = noop;
+  console.table = noop;
+  console.dir = noop;
+} catch {}
+
+document.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  e.stopPropagation();
+  shieldWarn("Content protected · Right-click is disabled");
+}, true);
+
+["copy", "cut"].forEach(evtName => {
+  document.addEventListener(evtName, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    shieldWarn("Content protected · Copying is disabled");
+  }, true);
+});
+
+document.addEventListener("selectstart", e => {
+  if (isInputEl(e.target)) return;
+  e.preventDefault();
+}, true);
+
+document.addEventListener("dragstart", e => { e.preventDefault(); }, true);
+
+window.addEventListener("keydown", e => {
+  const k = String(e.key || "").toLowerCase();
+  const ctrlOrMeta = e.ctrlKey || e.metaKey;
+  const blocked =
+    e.key === "F12" ||
+    (ctrlOrMeta && e.shiftKey && ["i", "j", "c", "k", "m", "e"].includes(k)) ||
+    (ctrlOrMeta && e.altKey && ["i", "j", "c", "u"].includes(k)) ||
+    (ctrlOrMeta && ["u", "s", "p"].includes(k));
+  if (blocked) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation?.();
+    shieldWarn("Protected view · Source & developer tools are disabled");
+    return;
+  }
+  if (ctrlOrMeta && !isInputEl(e.target) && ["c", "x", "a"].includes(k)) {
+    e.preventDefault();
+    e.stopPropagation();
+    shieldWarn("Content protected · Copying is disabled");
+  }
+}, true);
+
+function checkDevTools() {
+  if (window.self !== window.top) return;
+  const open = (window.outerWidth - window.innerWidth) > 260 || (window.outerHeight - window.innerHeight) > 280;
+  const overlay = $("#privacyOverlay");
+  if (open) {
+    overlay.classList.add("show");
+    if (activeMatch) closePlayer();
+  } else {
+    overlay.classList.remove("show");
+  }
+}
+setInterval(checkDevTools, 900);
+window.addEventListener("resize", checkDevTools);
+
+document.addEventListener("keydown", e => {
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+  if (!activeMatch) {
+    if (e.key === "/") { e.preventDefault(); $("#searchInput").focus(); }
+    return;
+  }
+  if (e.key === "Escape" && !document.fullscreenElement) closePlayer();
+  else if (e.key === " " || e.key.toLowerCase() === "k") { e.preventDefault(); $("#playPauseBtn").click(); }
+  else if (e.key.toLowerCase() === "m") $("#muteBtn").click();
+  else if (e.key.toLowerCase() === "f") $("#fsBtn").click();
+  else if (e.key.toLowerCase() === "p") $("#pipBtn").click();
+  else if (e.key.toLowerCase() === "t") $("#theaterBtn").click();
+  else if (e.key.toLowerCase() === "s") captureSnapshot();
+  else if (e.key === "ArrowLeft" || e.key.toLowerCase() === "j") $("#rwBtn").click();
+  else if (e.key === "ArrowRight" || e.key.toLowerCase() === "l") $("#fwBtn").click();
+});
+
+/* Click-Triggered & Touch-Triggered Redirect Ads (20s cooldown) */
+(() => {
+  const COOLDOWN_MS = 20000;
+  const KEY = "ss_ad_last_ts";
+  const _AD = [
+    "aHR0cHM6Ly93d3cuZWZmZWN0aXZlY3BtbmV0d29yay5jb20veXhkcHFp",
+    "ZXQ1P2tleT05MzA4OTQyNzRjM2U5ZTlkMjliNTc2MjE0MjJlOTA2ZA=="
+  ];
+  const readTs = () => {
+    try { const v = Number(sessionStorage.getItem(KEY) || 0); return Number.isFinite(v) && v > 0 ? v : 0; }
+    catch { return 0; }
+  };
+  const writeTs = ts => { try { sessionStorage.setItem(KEY, String(ts)); } catch {} };
+  const skipEl = t => t instanceof Element && Boolean(t.closest("input, textarea, select, option"));
+
+  let lastTs = readTs();
+  let lastTouchTs = 0;
+  let tx = 0, ty = 0;
+
+  const fireAd = () => {
+    const now = Date.now();
+    if (now - lastTs < COOLDOWN_MS) return;
+    lastTs = now;
+    writeTs(now);
+    try {
+      const a = document.createElement("a");
+      a.href = atob(_AD.join(""));
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {}
+  };
+
+  document.addEventListener("touchstart", e => {
+    if (!e.isTrusted || !e.touches.length) return;
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+  }, { capture: true, passive: true });
+
+  document.addEventListener("touchend", e => {
+    if (!e.isTrusted || skipEl(e.target)) return;
+    if (e.changedTouches && e.changedTouches.length) {
+      if (Math.abs(e.changedTouches[0].clientX - tx) > 12 || Math.abs(e.changedTouches[0].clientY - ty) > 12) return;
+    }
+    lastTouchTs = Date.now();
+    fireAd();
+  }, { capture: true, passive: true });
+
+  document.addEventListener("click", e => {
+    if (!e.isTrusted || skipEl(e.target)) return;
+    if (Date.now() - lastTouchTs < 750) return;
+    fireAd();
+  }, { capture: true, passive: true });
+})();
+
+loadData();
+})();
+</script>
+</body>
+</html>

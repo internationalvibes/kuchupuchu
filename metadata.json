@@ -1,0 +1,6 @@
+{
+  "name": "Sports Snap",
+  "description": "Sports Snap — Sleek dark-mode live sports broadcast hub with an advanced HLS/DASH streaming player and full controls panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

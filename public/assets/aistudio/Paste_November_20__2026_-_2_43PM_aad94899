@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a1628">
+<title>ALLINONE — Live Sports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script src="https://cdn.dashjs.org/v4.7.4/dash.all.min.js"></script>
+<style>
+:root {
+  --bg: #07101f;
+  --bg2: #0c1a2e;
+  --card: #12233a;
+  --card2: #182b45;
+  --line: #243b5c;
+  --text: #eef4ff;
+  --muted: #8ba3c7;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --live: #f43f5e;
+  --live-soft: #f43f5e22;
+  --cyan: #22d3ee;
+  --success: #34d399;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 "Outfit", system-ui, sans-serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, #1e3a8a33, transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, #0ea5e922, transparent);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 40px);
+}
+
+/* Header */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+}
+.brand span {
+  background: linear-gradient(135deg, var(--accent2), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.scorebar {
+  display: flex;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.score {
+  padding: 10px 20px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+  min-width: 90px;
+}
+.score:last-child { border-right: none; }
+.score strong {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.score span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.score.live strong { color: var(--live); }
+.score.up strong { color: var(--accent2); }
+.score.ch strong { color: var(--cyan); }
+.updated {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.updated::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px #34d39933;
+}
+
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 12px;
+  padding: 24px 0 12px;
+}
+.searchbox input, select {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.searchbox input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #3b82f633;
+}
+select { cursor: pointer; }
+
+/* Chips */
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 6px 0 14px;
+  scrollbar-width: thin;
+}
+.chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--bg2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chip:hover { color: var(--text); border-color: var(--accent); }
+.chip.active {
+  background: linear-gradient(135deg, var(--accent), #2563eb);
+  border-color: transparent;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 14px #3b82f644;
+}
+.chip.cricket:not(.active) {
+  border-color: #3b82f666;
+  color: var(--accent2);
+}
+
+/* Section */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 20px 0 8px;
+}
+.section-head h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+.section-head p { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.results { color: var(--muted); font-size: 14px; white-space: nowrap; }
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  padding-bottom: 60px;
+}
+.group {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0 4px;
+}
+.group h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  color: var(--accent2);
+}
+.group.rest h3 { color: var(--text); }
+.group::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.group small { color: var(--muted); font-size: 13px; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  animation: cardIn 0.5s cubic-bezier(0.22, 0.8, 0.25, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+.card.live-match {
+  cursor: pointer;
+  border-left: 4px solid var(--live);
+}
+.card.live-match:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px #00000055;
+}
+.card.non-live { opacity: 0.78; cursor: default; }
+.card.cricket-card.live-match { border-left-color: var(--accent2); }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.card-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  background: var(--card2);
+}
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.team img, .team .team-logo-fallback {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.team .team-logo-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  color: var(--accent2);
+  font: 700 18px "Space Grotesk", sans-serif;
+}
+.team span {
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.versus {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.badges {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--card2);
+  border-top: 1px solid var(--line);
+}
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #ffffff10;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.status.live { background: var(--live-soft); color: #fb7185; }
+.status.upcoming { background: #3b82f622; color: var(--accent2); }
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.35; } }
+.category {
+  font-size: 12px;
+  color: var(--accent2);
+  border: 1px solid #3b82f644;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.event-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.league { color: var(--muted); font-size: 14px; }
+.meta { color: var(--muted); font-size: 13px; padding-top: 4px; }
+.stream-row {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+.stream-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--success);
+  background: #064e3b33;
+  border: 1px solid #10b98144;
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+.stream-count.none {
+  color: var(--muted);
+  background: var(--bg2);
+  border-color: var(--line);
+}
+
+/* Empty states */
+.empty, .loading, .error {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+.empty strong, .loading strong, .error strong {
+  display: block;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.error button {
+  margin-top: 14px;
+  background: linear-gradient(135deg, var(--accent), #2563eb);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 24px 0 40px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 22px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px #00000066;
+  font-size: 14px;
+  z-index: 200;
+  display: none;
+}
+
+/* ===================== PLAYER MODAL ===================== */
+.player-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #020810ee;
+  backdrop-filter: blur(14px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.player-overlay.active { display: flex; }
+
+.player-panel {
+  width: min(1100px, 100%);
+  max-height: 94vh;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 80px #000000aa;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--card2);
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.player-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-close {
+  background: #ffffff12;
+  border: 1px solid #ffffff1c;
+  color: white;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.player-close:hover { background: #ffffff22; }
+
+.player-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  min-height: 0;
+  flex: 1;
+}
+
+.video-wrap {
+  background: #000;
+  position: relative;
+  aspect-ratio: 16/9;
+  max-height: 70vh;
+}
+.video-wrap video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+.video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  gap: 10px;
+  pointer-events: none;
+}
+.video-placeholder strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.sources-panel {
+  background: var(--bg2);
+  border-left: 1px solid var(--line);
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sources-panel h4 {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.source-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.source-btn:hover { border-color: var(--accent); }
+.source-btn.active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, #1e3a8a55, #1e40af44);
+  color: var(--accent2);
+}
+.source-btn small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Responsive player */
+@media (max-width: 800px) {
+  .player-body { grid-template-columns: 1fr; }
+  .sources-panel {
+    border-left: none;
+    border-top: 1px solid var(--line);
+    max-height: 200px;
+  }
+  .video-wrap { max-height: 50vh; }
+}
+
+/* Responsive general */
+@media (max-width: 700px) {
+  .controls { grid-template-columns: 1fr; }
+  .brand { font-size: 24px; }
+  .scorebar { width: 100%; }
+  .score { flex: 1; min-width: 0; padding: 8px 6px; }
+  .updated { display: none; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card-top { padding: 14px 10px 12px; }
+  .team img, .team .team-logo-fallback { width: 40px; height: 40px; }
+  .team span { font-size: 12px; }
+  .event-title { font-size: 15px; }
+  .section-head h2 { font-size: 22px; }
+}
+@media (max-width: 400px) {
+  .grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">ALLINONE <span>SPORTS</span></div>
+    <div class="scorebar">
+      <div class="score"><strong id="matchCount">—</strong><span>Matches</span></div>
+      <div class="score live"><strong id="liveCount">—</strong><span>Live</span></div>
+      <div class="score up"><strong id="upcomingCount">—</strong><span>Upcoming</span></div>
+      <div class="score ch"><strong id="streamCount">—</strong><span>Channels</span></div>
+    </div>
+    <div class="updated" id="updatedPill">Connecting…</div>
+  </header>
+
+  <div class="controls">
+    <div class="searchbox">
+      <input id="search" type="search" placeholder="Search teams, leagues, channels…" autocomplete="off" aria-label="Search">
+    </div>
+    <select id="sortFilter" aria-label="Sort events">
+      <option value="default">Recommended order</option>
+      <option value="live">Live first</option>
+      <option value="name">Name A–Z</option>
+    </select>
+  </div>
+
+  <nav class="chips" id="statusTabs" aria-label="Status filters">
+    <button class="chip status-tab active" data-status="ALL">All status</button>
+    <button class="chip status-tab" data-status="LIVE">Live</button>
+    <button class="chip status-tab" data-status="UPCOMING">Upcoming</button>
+    <button class="chip status-tab" data-status="ENDED">Ended</button>
+  </nav>
+  <nav class="chips" id="categoryTabs" aria-label="Sport categories">
+    <button class="chip active" data-category="ALL">All sports</button>
+  </nav>
+
+  <div class="section-head">
+    <div>
+      <h2 id="sectionTitle">All matches</h2>
+      <p>Click a live match to open the integrated player.</p>
+    </div>
+    <div class="results" id="resultCount">Loading events…</div>
+  </div>
+
+  <main class="grid" id="grid">
+    <div class="loading"><strong>Loading the match centre…</strong>Fetching the latest sports data.</div>
+  </main>
+
+  <footer class="footer">ALLINONE · SPORTS</footer>
+</div>
+
+<!-- Player Modal -->
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-panel">
+    <div class="player-header">
+      <div class="player-title" id="playerTitle">Loading…</div>
+      <button class="player-close" id="playerClose" aria-label="Close">✕</button>
+    </div>
+    <div class="player-body">
+      <div class="video-wrap">
+        <video id="videoPlayer" controls playsinline></video>
+        <div class="video-placeholder" id="videoPlaceholder">
+          <strong>Select a source</strong>
+          <span>Choose a stream from the list</span>
+        </div>
+      </div>
+      <div class="sources-panel" id="sourcesPanel">
+        <h4>Available Sources</h4>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const DATA_URL = "https://raw.githubusercontent.com/sm-monirulislam/Upcoming-and-Live-Sports-Data/main/Sports_data.json";
+const PRIORITY_CATEGORY = "cricket";
+
+const $ = s => document.querySelector(s);
+const grid = $("#grid");
+let allMatches = [];
+let activeCategory = "ALL";
+let activeStatus = "ALL";
+let toastTimer;
+let currentHls = null;
+let currentDash = null;
+let currentMatch = null;
+
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+
+function safeUrl(value) {
+  try {
+    const u = new URL(value);
+    return ["http:", "https:"].includes(u.protocol) ? u.href : "";
+  } catch { return ""; }
+}
+
+function matchStatus(m) {
+  const status = String(m.status || "").trim().toUpperCase();
+  if (status === "LIVE") return "LIVE";
+  if (["ENDED", "FINISHED", "COMPLETED"].includes(status)) return "ENDED";
+  return "UPCOMING";
+}
+function isLive(m) { return matchStatus(m) === "LIVE"; }
+function isCricket(m) { return String(m.Category || "").trim().toLowerCase() === PRIORITY_CATEGORY; }
+function streamsOf(m) { return Array.isArray(m.streams) ? m.streams : []; }
+function validStreams(m) { return streamsOf(m).filter(s => safeUrl(s.stream_url)); }
+function eventInfo(m) { return m.eventInfo || {}; }
+function eventName(m) {
+  const i = eventInfo(m);
+  return i.eventName || m.event_name || "Sports event";
+}
+function teamA(m) {
+  const i = eventInfo(m);
+  return i.teamA || String(m.event_name || "").split(/\s+Vs\s+/i)[0] || eventName(m);
+}
+function teamB(m) {
+  const i = eventInfo(m);
+  return i.teamB || String(m.event_name || "").split(/\s+Vs\s+/i)[1] || "";
+}
+
+function teamLogoHtml(primary, fallback, teamName) {
+  const teamUrl = safeUrl(primary);
+  const eventUrl = safeUrl(fallback);
+  const initials = String(teamName || "?").trim().split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(x => x[0]).join("").toUpperCase() || "?";
+  const fallbackHtml = `<span class="team-logo-fallback" aria-hidden="true">${esc(initials)}</span>`;
+  if (!teamUrl && !eventUrl) {
+    return fallbackHtml.replace('class="team-logo-fallback"', 'class="team-logo-fallback" style="display:flex"');
+  }
+  const first = teamUrl || eventUrl;
+  const second = teamUrl && eventUrl && teamUrl !== eventUrl ? eventUrl : "";
+  return `<img src="${esc(first)}" alt="${esc(teamName)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback="${esc(second)}" onerror="if(this.dataset.fallback){const next=this.dataset.fallback;this.dataset.fallback='';this.src=next}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'}">${fallbackHtml}`;
+}
+
+function showToast(message) {
+  const t = $("#toast");
+  t.textContent = message;
+  t.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display = "none", 2800);
+}
+
+function timeText(m) {
+  const i = eventInfo(m);
+  return i.startTime || "Time not listed";
+}
+
+function cardHtml(m, index) {
+  const i = eventInfo(m);
+  const status = matchStatus(m);
+  const live = status === "LIVE";
+  const streams = live ? validStreams(m) : [];
+  const a = teamA(m);
+  const b = teamB(m);
+  const logo = safeUrl(i.event_logo);
+  const flagA = safeUrl(i.teamAFlag);
+  const flagB = safeUrl(i.teamBFlag);
+  const cat = m.Category || "Other";
+  const none = !live || !streams.length;
+  const sourceLabel = live
+    ? (streams.length ? `<strong>${streams.length}</strong> available source${streams.length === 1 ? "" : "s"}` : "No source available")
+    : status;
+  const statusLabel = live ? '<i class="dot"></i> LIVE' : status;
+
+  return `<article class="card ${live ? "live-match" : "non-live"} ${isCricket(m) ? "cricket-card" : ""}" data-index="${index}">
+    <div class="card-top">
+      <div class="team">${teamLogoHtml(flagA, logo, a)}<span title="${esc(a)}">${esc(a)}</span></div>
+      <div class="versus">VS</div>
+      <div class="team">${teamLogoHtml(flagB, logo, b)}<span title="${esc(b)}">${esc(b)}</span></div>
+    </div>
+    <div class="badges">
+      <span class="status ${status.toLowerCase()}">${statusLabel}</span>
+      <span class="category">${esc(cat)}</span>
+    </div>
+    <div class="card-body">
+      <h3 class="event-title">${esc(m.event_name || eventName(m))}</h3>
+      <div class="league">${esc(eventName(m))}</div>
+      <div class="meta">◷ ${esc(timeText(m))}</div>
+      <div class="stream-row">
+        <div class="stream-count ${none ? "none" : ""}">${sourceLabel}</div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function getFiltered() {
+  const q = $("#search").value.trim().toLowerCase();
+  let rows = allMatches.map((m, index) => ({ m, index })).filter(({ m }) => {
+    const statusMatches = activeStatus === "ALL" || activeStatus === matchStatus(m);
+    const matchCat = activeCategory === "ALL" || (m.Category || "Other") === activeCategory;
+    const text = [m.event_name, eventName(m), teamA(m), teamB(m), m.Category, ...streamsOf(m).map(s => s.channel_name)].join(" ").toLowerCase();
+    return statusMatches && matchCat && text.includes(q);
+  });
+  const sort = $("#sortFilter").value;
+  if (sort === "live") rows.sort((a, b) => Number(isLive(b.m)) - Number(isLive(a.m)));
+  if (sort === "name") rows.sort((a, b) => String(a.m.event_name || "").localeCompare(String(b.m.event_name || "")));
+  return rows;
+}
+
+function destroyPlayer() {
+  const video = $("#videoPlayer");
+  if (currentHls) {
+    currentHls.destroy();
+    currentHls = null;
+  }
+  if (currentDash) {
+    currentDash.reset();
+    currentDash = null;
+  }
+  video.removeAttribute("src");
+  video.load();
+  $("#videoPlaceholder").style.display = "flex";
+}
+
+function playStream(stream) {
+  const video = $("#videoPlayer");
+  const url = stream.stream_url;
+  const isDash = /\.mpd(?:$|\?)/i.test(url);
+  const isHls = /\.m3u8(?:$|\?)/i.test(url);
+
+  destroyPlayer();
+  $("#videoPlaceholder").style.display = "none";
+
+  if (isDash) {
+    currentDash = dashjs.MediaPlayer().create();
+    currentDash.initialize(video, url, true);
+
+    if (stream.kid && stream.key) {
+      // ClearKey DRM
+      const kid = stream.kid.replace(/-/g, "").toLowerCase();
+      const key = stream.key.replace(/-/g, "").toLowerCase();
+      currentDash.setProtectionData({
+        "org.w3.clearkey": {
+          clearkeys: {
+            [kid]: key
+          }
+        }
+      });
+    }
+  } else if (isHls && Hls.isSupported()) {
+    currentHls = new Hls({
+      enableWorker: true,
+      lowLatencyMode: true
+    });
+    currentHls.loadSource(url);
+    currentHls.attachMedia(video);
+    currentHls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play().catch(() => {});
+    });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    // Native HLS (Safari)
+    video.src = url;
+    video.play().catch(() => {});
+  } else {
+    // Fallback
+    video.src = url;
+    video.play().catch(() => {});
+  }
+}
+
+function openPlayer(match) {
+  if (!match || !isLive(match)) return;
+  const sources = validStreams(match);
+  if (!sources.length) {
+    showToast("No playable sources available");
+    return;
+  }
+
+  currentMatch = match;
+  $("#playerTitle").textContent = match.event_name || eventName(match);
+  const panel = $("#sourcesPanel");
+  panel.innerHTML = "<h4>Available Sources</h4>";
+
+  sources.forEach((s, i) => {
+    const btn = document.createElement("button");
+    btn.className = "source-btn" + (i === 0 ? " active" : "");
+    const type = /\.mpd(?:$|\?)/i.test(s.stream_url) ? "DASH" : "HLS";
+    btn.innerHTML = `${esc(s.channel_name || `Source ${i + 1}`)}<small>${type}</small>`;
+    btn.onclick = () => {
+      panel.querySelectorAll(".source-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      playStream(s);
+    };
+    panel.appendChild(btn);
+  });
+
+  // Auto-play first source
+  playStream(sources[0]);
+  $("#playerOverlay").classList.add("active");
+}
+
+function closePlayer() {
+  destroyPlayer();
+  currentMatch = null;
+  $("#playerOverlay").classList.remove("active");
+}
+
+function render() {
+  const rows = getFiltered();
+  $("#sectionTitle").textContent =
+    (activeStatus === "LIVE" ? "Live now" :
+     activeStatus === "UPCOMING" ? "Upcoming matches" :
+     activeStatus === "ENDED" ? "Ended matches" : "All matches") +
+    (activeCategory === "ALL" ? "" : " · " + activeCategory);
+
+  document.querySelectorAll(".status-tab").forEach(b =>
+    b.classList.toggle("active", b.dataset.status === activeStatus)
+  );
+  $("#resultCount").textContent = `${rows.length} event${rows.length === 1 ? "" : "s"}`;
+
+  if (!rows.length) {
+    grid.innerHTML = '<div class="empty"><strong>No matches found</strong>Try another search or select a different sport or status.</div>';
+    return;
+  }
+
+  const cricket = rows.filter(r => isCricket(r.m));
+  const rest = rows.filter(r => !isCricket(r.m));
+  let html = "";
+
+  if (activeCategory === "ALL" && cricket.length && rest.length) {
+    html += `<div class="group"><h3>Cricket</h3><small>${cricket.length} event${cricket.length === 1 ? "" : "s"}</small></div>` +
+            cricket.map(({ m, index }) => cardHtml(m, index)).join("");
+    html += `<div class="group rest"><h3>Other sports</h3><small>${rest.length} event${rest.length === 1 ? "" : "s"}</small></div>` +
+            rest.map(({ m, index }) => cardHtml(m, index)).join("");
+  } else {
+    html = [...cricket, ...rest].map(({ m, index }) => cardHtml(m, index)).join("");
+  }
+
+  grid.innerHTML = html;
+  grid.querySelectorAll(".group, .card").forEach((el, i) => el.style.setProperty("--i", Math.min(i, 14)));
+
+  grid.querySelectorAll(".card.live-match").forEach(card => {
+    card.addEventListener("click", () => {
+      const idx = Number(card.dataset.index);
+      openPlayer(allMatches[idx]);
+    });
+  });
+}
+
+function renderCategories() {
+  const cats = [...new Set(allMatches.map(m => m.Category || "Other"))].sort((a, b) => {
+    const ca = a.toLowerCase() === PRIORITY_CATEGORY;
+    const cb = b.toLowerCase() === PRIORITY_CATEGORY;
+    return ca !== cb ? (ca ? -1 : 1) : a.localeCompare(b);
+  });
+
+  const allBtn = `<button class="chip ${activeCategory === "ALL" ? "active" : ""}" data-category="ALL">All sports</button>`;
+  const catBtns = cats.map(c =>
+    `<button class="chip ${c.toLowerCase() === PRIORITY_CATEGORY ? "cricket" : ""} ${activeCategory === c ? "active" : ""}" data-category="${esc(c)}">${esc(c)}</button>`
+  ).join("");
+
+  const box = $("#categoryTabs");
+  box.innerHTML = allBtn + catBtns;
+  box.querySelectorAll("[data-category]").forEach(b => {
+    b.addEventListener("click", () => {
+      activeCategory = b.dataset.category;
+      renderCategories();
+      render();
+    });
+  });
+}
+
+async function loadData() {
+  try {
+    const response = await fetch(DATA_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Source returned HTTP " + response.status);
+    const data = await response.json();
+    allMatches = Array.isArray(data) ? data : (Array.isArray(data.matches) ? data.matches : []);
+
+    const live = allMatches.filter(isLive).length;
+    const feeds = allMatches.reduce((n, m) => n + validStreams(m).length, 0);
+
+    $("#liveCount").textContent = Number.isFinite(data.live_match) ? data.live_match : live;
+    $("#matchCount").textContent = Number.isFinite(data.total_matches) ? data.total_matches : allMatches.length;
+    $("#streamCount").textContent = feeds.toLocaleString();
+    $("#upcomingCount").textContent = allMatches.filter(m => String(m.status || "").toUpperCase() === "UPCOMING").length;
+    $("#updatedPill").textContent = data.last_update_time ? "Updated " + data.last_update_time : "Data loaded";
+
+    renderCategories();
+    render();
+  } catch (err) {
+    grid.innerHTML = `<div class="error">
+      <strong>Could not load sports data</strong>
+      <p>${esc(err.message || "Unknown error")}</p>
+      <button onclick="loadData()">Try again</button>
+    </div>`;
+    $("#updatedPill").textContent = "Connection error";
+    $("#resultCount").textContent = "Data unavailable";
+  }
+}
+
+// Events
+$("#search").addEventListener("input", render);
+document.querySelectorAll(".status-tab").forEach(button => {
+  button.addEventListener("click", () => {
+    activeStatus = button.dataset.status;
+    render();
+  });
+});
+$("#sortFilter").addEventListener("change", render);
+$("#playerClose").addEventListener("click", closePlayer);
+$("#playerOverlay").addEventListener("click", e => {
+  if (e.target === $("#playerOverlay")) closePlayer();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closePlayer();
+});
+
+loadData();
+</script>
+</body>
+</html>
